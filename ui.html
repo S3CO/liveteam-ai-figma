@@ -64,11 +64,6 @@
   <label>Google AI API Key</label>
   <input type="text" id="keyInput" placeholder="AIzaSy..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
   <p style="font-size:10px;color:#666;margin-bottom:8px">🔑 <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A">aistudio.google.com/apikey</a></p>
-  <div class="check-row">
-    <input type="checkbox" id="saveCheck" checked>
-    <span>Запомнить / Save / Kaydet</span>
-  </div>
-  <p style="font-size:9px;color:#555;margin-bottom:12px">🔒 Ключ хранится только на вашем компьютере.</p>
   <button class="big-btn" id="startBtn">ПОЕХАЛИ! 🚀</button>
   <div style="margin-top:16px;padding:12px;background:#2c2c2c;border-radius:8px;border:1px solid #333;text-align:center">
     <p style="font-size:11px;color:#ccc;margin-bottom:4px">⭐ Нравится? Поставьте звезду!</p>
@@ -209,9 +204,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
 
     // Key geçerli
     KEY = k;
-    if (document.getElementById('saveCheck').checked) {
-      parent.postMessage({ pluginMessage: { type: 'save-key', key: k } }, '*');
-    }
+    parent.postMessage({ pluginMessage: { type: 'save-key', key: k } }, '*');
     showMain();
   } catch (e) {
     btn.textContent = '❌ Неверный ключ — попробуйте другой';
