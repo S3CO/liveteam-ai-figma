@@ -428,25 +428,46 @@ async function generate() {
 
     for (let v = 0; v < variationCount; v++) {
       const vStart = Date.now();
+      const statusMessages = [
+        '🔄 Запрос отправлен...',
+        '🧠 AI думает...',
+        '🎨 Рисует...',
+        '🖌 Добавляет детали...',
+        '✨ Финальные штрихи...',
+        '📦 Почти готово...',
+        '⏳ Ещё немного...',
+      ];
+      let statusIdx = 0;
       const timerInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - vStart) / 1000);
-        showProgress(startPct + (v / variationCount) * 55, `🎨 ${v + 1}/${variationCount} — ${elapsed}с...`);
+        if (elapsed > 0 && elapsed % 8 === 0 && statusIdx < statusMessages.length - 1) statusIdx++;
+        const msg = statusMessages[statusIdx];
+        showProgress(startPct + (v / variationCount) * 55, `${msg} ${v + 1}/${variationCount} — ${elapsed}с`);
       }, 1000);
-      showProgress(startPct + (v / variationCount) * 55, `🎨 ${v + 1}/${variationCount} — 0с...`);
+      showProgress(startPct + (v / variationCount) * 55, `🔄 ${v + 1}/${variationCount} — 0с`);
 
       const varPrompt = finalPrompt + variationStyles[v];
 
       let imageBytes;
-      if (selectedModel === 'nano') {
-        imageBytes = await generateNanoBanana(varPrompt, 'gemini-3.1-flash-image-preview');
-      } else if (selectedModel === 'nanopro') {
-        imageBytes = await generateNanoBanana(varPrompt, 'gemini-3-pro-image-preview');
-      } else if (selectedModel === 'imagen4ultra') {
-        imageBytes = await generateImagen(varPrompt, 'imagen-4.0-ultra-generate-001');
+      try {
+        if (selectedModel === 'nano') {
+          imageBytes = await generateNanoBanana(varPrompt, 'gemini-3.1-flash-image-preview');
+        } else if (selectedModel === 'nanopro') {
+          imageBytes = await generateNanoBanana(varPrompt, 'gemini-3-pro-image-preview');
+        } else if (selectedModel === 'imagen4ultra') {
+          imageBytes = await generateImagen(varPrompt, 'imagen-4.0-ultra-generate-001');
+        }
+        clearInterval(timerInterval);
+        const elapsed = Math.floor((Date.now() - vStart) / 1000);
+        showProgress(startPct + ((v + 1) / variationCount) * 55, `✅ ${v + 1}/${variationCount} готово за ${elapsed}с`);
+        allImages.push(imageBytes);
+      } catch (varErr) {
+        clearInterval(timerInterval);
+        // Bir varyasyon fail olursa diğerlerine devam et
+        showProgress(startPct + ((v + 1) / variationCount) * 55, `❌ ${v + 1}/${variationCount} — ${varErr.message.substring(0, 40)}`);
+        await new Promise(r => setTimeout(r, 1500));
+        continue;
       }
-
-      clearInterval(timerInterval);
-      allImages.push(imageBytes);
     }
 
     showProgress(65, `✅ ${variationCount} variant`);
