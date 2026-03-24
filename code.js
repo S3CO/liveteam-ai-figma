@@ -56,12 +56,12 @@ figma.ui.onmessage = async (msg) => {
         frame.resize(s.w, s.h);
         frame.x = getNextX();
         frame.y = getBaseY();
-        // Oranlar benzer ise FILL (kırpma), çok farklıysa FIT (tam sığdır)
-        const srcRatio = source.width / source.height;
-        const tgtRatio = s.w / s.h;
-        const ratioDiff = Math.abs(srcRatio - tgtRatio) / srcRatio;
-        const mode = ratioDiff < 0.3 ? 'FILL' : 'FIT';
-        frame.fills = [{ type: 'IMAGE', scaleMode: mode, imageHash: image.hash }];
+        // Her zaman FIT - karakter asla kesilmez, tam sığar
+        // Arka plan koyu renk ile doldur (boşluklar için)
+        frame.fills = [
+          { type: 'SOLID', color: { r: 0.04, g: 0.06, b: 0.1 }, opacity: 1 },
+          { type: 'IMAGE', scaleMode: 'FIT', imageHash: image.hash }
+        ];
         frame.cornerRadius = 8;
       }
 
