@@ -8,16 +8,16 @@ const GAP = 40;
 // İlk banner'ın Y pozisyonunu bul (tüm banner'lar aynı hizada olacak)
 function getBaseY() {
   const aiFrames = figma.currentPage.children.filter(
-    n => n.name.startsWith('AI:') && n.type === 'FRAME'
+    n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/)
   );
   if (aiFrames.length === 0) return figma.viewport.center.y - 300;
-  return aiFrames[0].y; // İlk frame'in Y'si referans
+  return aiFrames[0].y;
 }
 
 // Sıradaki X pozisyonunu bul
 function getNextX() {
   const aiFrames = figma.currentPage.children.filter(
-    n => n.name.startsWith('AI:') && n.type === 'FRAME'
+    n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/)
   );
   if (aiFrames.length === 0) return figma.viewport.center.x - 400;
 
@@ -37,7 +37,7 @@ figma.ui.onmessage = async (msg) => {
       const image = figma.createImage(bytes);
 
       const frame = figma.createFrame();
-      frame.name = `AI: ${name}`;
+      frame.name = name;
       frame.resize(width, height);
 
       // Yan yana + aynı üst hiza

@@ -449,9 +449,9 @@ async function generate() {
         const s = sizes[i];
         placeIdx++;
         showProgress(Math.round(65 + placeIdx * placePct), `📐 V${v + 1} ${s.w}×${s.h}`);
-        const bannerName = document.getElementById('bannerName').value.trim() || prompt.substring(0, 30);
-        const vLabel = variationCount > 1 ? ` V${v + 1}` : '';
-        parent.postMessage({ pluginMessage: { type: 'place-image', imageBytes: Array.from(allImages[v]), width: s.w, height: s.h, name: `${bannerName}${vLabel} (${s.w}×${s.h})` } }, '*');
+        const bannerName = document.getElementById('bannerName').value.trim() || 'banner';
+        const num = v * sizes.length + i + 1;
+        parent.postMessage({ pluginMessage: { type: 'place-image', imageBytes: Array.from(allImages[v]), width: s.w, height: s.h, name: `${bannerName} ${num} (${s.w}×${s.h})` } }, '*');
         await new Promise(r => setTimeout(r, 400));
       }
     }
