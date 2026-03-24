@@ -102,8 +102,12 @@
   <p style="font-size:10px; color:#666; margin-bottom:10px; text-align:left;">
     🔑 Получите бесплатный ключ: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A;">aistudio.google.com/apikey</a>
   </p>
+  <label style="display:flex; align-items:center; gap:8px; margin-bottom:16px; cursor:pointer;">
+    <input type="checkbox" id="saveKeyCheck" checked style="width:16px; height:16px; accent-color:#5AC40A; cursor:pointer;">
+    <span style="font-size:12px; color:#aaa;">Запомнить ключ / Save key / Key'i kaydet</span>
+  </label>
   <p style="font-size:9px; color:#555; margin-bottom:16px; text-align:left;">
-    🔒 Ваш ключ не сохраняется и отправляется только в Google AI API через HTTPS.
+    🔒 Ключ хранится только на вашем компьютере.
   </p>
   <button onclick="saveApiKey()" style="width:100%; padding:12px; background:#5AC40A; color:#1e1e1e; border:none; border-radius:8px; font-size:14px; font-weight:800; cursor:pointer;">ПОЕХАЛИ! 🚀</button>
 
@@ -119,9 +123,7 @@
 
 <div class="header">
   <h1>🎨 Live <span>Team</span></h1>
-  <p>AI Image → Figma <span id="keyStatus" style="font-size:9px; color:#666; margin-left:4px;"></span></p>
-  <div id="resetKeyBtn" style="display:inline-block;background:#2c2c2c;border:1px solid #444;border-radius:6px;color:#888;font-size:11px;padding:6px 14px;cursor:pointer;margin-top:4px;user-select:none;">⚙️ сменить ключ</div>
-  <script>document.getElementById('resetKeyBtn').addEventListener('click', function(){ resetApiKey(); });</script>
+  <p>AI Image → Figma</p>
 </div>
 
 <div class="lang">
@@ -226,7 +228,6 @@ function checkApiKey() {
   }
   document.getElementById('setupPanel').style.display = 'none';
   document.getElementById('mainPanel').style.display = 'block';
-  document.getElementById('keyStatus').textContent = '🔑 ' + GEMINI_KEY.substring(0, 8) + '...';
   return true;
 }
 
@@ -234,13 +235,9 @@ function saveApiKey() {
   const key = document.getElementById('apiKeyInput').value.trim();
   if (!key) return;
   GEMINI_KEY = key;
-  localStorage.setItem('liveteam_gemini_key', key);
-  checkApiKey();
-}
-
-function resetApiKey() {
-  GEMINI_KEY = '';
-  localStorage.removeItem('liveteam_gemini_key');
+  if (document.getElementById('saveKeyCheck').checked) {
+    localStorage.setItem('liveteam_gemini_key', key);
+  }
   checkApiKey();
 }
 
