@@ -427,7 +427,12 @@ async function generate() {
     ];
 
     for (let v = 0; v < variationCount; v++) {
-      showProgress(startPct + (v / variationCount) * 55, `🎨 ${v + 1}/${variationCount} — ${translations[lang].generating}`);
+      const vStart = Date.now();
+      const timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - vStart) / 1000);
+        showProgress(startPct + (v / variationCount) * 55, `🎨 ${v + 1}/${variationCount} — ${elapsed}с...`);
+      }, 1000);
+      showProgress(startPct + (v / variationCount) * 55, `🎨 ${v + 1}/${variationCount} — 0с...`);
 
       const varPrompt = finalPrompt + variationStyles[v];
 
@@ -440,6 +445,7 @@ async function generate() {
         imageBytes = await generateImagen(varPrompt, 'imagen-4.0-ultra-generate-001');
       }
 
+      clearInterval(timerInterval);
       allImages.push(imageBytes);
     }
 
