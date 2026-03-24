@@ -32,30 +32,31 @@ figma.ui.onmessage = async (msg) => {
     await figma.clientStorage.deleteAsync('liveteam_key');
     return;
   }
-  // Seçili frame'i resize et
+  // Seçili element'i resize et (frame, component, instance, her şey)
   if (msg.type === 'resize-selected') {
     try {
       const sel = figma.currentPage.selection;
-      const allowed = ['FRAME', 'COMPONENT', 'INSTANCE', 'RECTANGLE', 'GROUP'];
-      if (!sel.length || !allowed.includes(sel[0].type)) {
-        figma.ui.postMessage({ type: 'error', message: 'Выберите фрейм или компонент / Select a frame or component' });
+      if (!sel.length) {
+        figma.ui.postMessage({ type: 'error', message: 'Выберите элемент / Select an element' });
         return;
       }
       const source = sel[0];
-      const fills = source.fills || [];
       const baseName = source.name.replace(/\s*\(\d+×\d+\)/, '').replace(/\s*\d+$/, '').trim() || 'banner';
-      const sizes = msg.sizes; // [{w,h}]
+      const sizes = msg.sizes;
+
+      // Görseli export edip byte array olarak al (her tip element için çalışır)
+      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 2 } });
+      const image = figma.createImage(exportBytes);
 
       for (let i = 0; i < sizes.length; i++) {
         const s = sizes[i];
-        // Aynı boyutsa atla
         if (s.w === Math.round(source.width) && s.h === Math.round(source.height)) continue;
         const frame = figma.createFrame();
         frame.name = baseName + ' (' + s.w + '×' + s.h + ')';
         frame.resize(s.w, s.h);
         frame.x = getNextX();
         frame.y = getBaseY();
-        frame.fills = JSON.parse(JSON.stringify(fills));
+        frame.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: image.hash }];
         frame.cornerRadius = 8;
       }
 
