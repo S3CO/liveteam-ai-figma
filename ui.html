@@ -92,18 +92,26 @@
 <body>
 
 <!-- SETUP PANELİ (API key girilmemişse) -->
-<div id="setupPanel" style="display:none; text-align:center; padding: 40px 20px;">
-  <h1 style="font-size:24px; margin-bottom:8px;">🎨 Live <span style="color:#5AC40A">Team</span></h1>
-  <p style="font-size:12px; color:#888; margin-bottom:30px;">AI Image Generator for Figma</p>
+<div id="setupPanel" style="display:none; text-align:center; padding: 30px 20px;">
+  <h1 style="font-size:24px; margin-bottom:4px;">🎨 Live <span style="color:#5AC40A">Team</span></h1>
+  <p style="font-size:12px; color:#888; margin-bottom:6px;">AI Image Generator for Figma</p>
+  <p style="font-size:20px; margin-bottom:20px;">🍌🎰🖼️✨</p>
+
   <label style="font-size:12px; color:#aaa; display:block; text-align:left; margin-bottom:6px;">Google AI API Key</label>
   <input type="text" id="apiKeyInput" placeholder="AIzaSy..." style="width:100%; padding:10px; background:#2c2c2c; border:1px solid #444; border-radius:6px; color:#fff; font-size:13px; margin-bottom:8px;">
   <p style="font-size:10px; color:#666; margin-bottom:10px; text-align:left;">
-    Получите бесплатный ключ: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A;">aistudio.google.com/apikey</a>
+    🔑 Получите бесплатный ключ: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A;">aistudio.google.com/apikey</a>
   </p>
   <p style="font-size:9px; color:#555; margin-bottom:16px; text-align:left;">
     🔒 Ваш ключ не сохраняется и отправляется только в Google AI API через HTTPS.
   </p>
-  <button onclick="saveApiKey()" style="width:100%; padding:12px; background:#5AC40A; color:#1e1e1e; border:none; border-radius:8px; font-size:14px; font-weight:800; cursor:pointer;">НАЧАТЬ 🚀</button>
+  <button onclick="saveApiKey()" style="width:100%; padding:12px; background:#5AC40A; color:#1e1e1e; border:none; border-radius:8px; font-size:14px; font-weight:800; cursor:pointer;">ПОЕХАЛИ! 🚀</button>
+
+  <div style="margin-top:20px; padding:14px; background:#2c2c2c; border-radius:8px; border:1px solid #333;">
+    <p style="font-size:11px; color:#ccc; margin-bottom:6px;">⭐ Нравится плагин? Поставьте звезду!</p>
+    <p style="font-size:10px; color:#888; margin-bottom:8px;">Каждая звезда — это +1 к удаче в генерации 🍀<br>Без звезды AI рисует только котиков 🐱</p>
+    <a href="https://github.com/S3CO/liveteam-ai-figma" target="_blank" style="display:inline-block; padding:8px 20px; background:#333; border:1px solid #5AC40A; border-radius:6px; color:#5AC40A; font-size:11px; font-weight:700; text-decoration:none;">⭐ Star on GitHub</a>
+  </div>
 </div>
 
 <!-- ANA PANEL -->
@@ -127,11 +135,11 @@
       <span class="model-name">🍌 Banana 2</span>
       <span class="model-info">Бесплатно • Быстро</span>
     </button>
-    <button class="model-btn" data-model="nanopro" onclick="selectModel(this)">
+    <button class="model-btn active" data-model="nanopro" onclick="selectModel(this)">
       <span class="model-name">🍌 Banana Pro</span>
       <span class="model-info">Бесплатно • Реалистично</span>
     </button>
-    <button class="model-btn active" data-model="imagen4ultra" onclick="selectModel(this)">
+    <button class="model-btn" data-model="imagen4ultra" onclick="selectModel(this)">
       <span class="model-name">🖼 Imagen 4 Ultra</span>
       <span class="model-info">Бесплатно • Лучшее качество</span>
     </button>
@@ -232,7 +240,7 @@ function resetApiKey() {
   checkApiKey();
 }
 
-let selectedModel = 'imagen4ultra';
+let selectedModel = 'nanopro';
 let refImageBase64 = null;
 let variationCount = 3;
 
