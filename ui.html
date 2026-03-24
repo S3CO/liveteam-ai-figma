@@ -498,7 +498,7 @@ async function handleAIResize(data) {
     const ratio = s.w > s.h ? 'landscape' : s.w < s.h ? 'portrait' : 'square';
     const posMap = { left: 'Place the character on the LEFT side.', center: 'Keep the character in the CENTER.', right: 'Place the character on the RIGHT side.' };
     const posHint = posMap[charPosition] || posMap.center;
-    const prompt = 'Take this image and adapt it to a ' + ratio + ' ' + s.w + 'x' + s.h + ' format. Keep the main character/subject exactly as is. ' + posHint + ' Extend the background naturally to fill the new dimensions. Do not crop the character. The character must be fully visible.';
+    const prompt = 'This is a ' + sourceW + 'x' + sourceH + ' image. I need it as ' + s.w + 'x' + s.h + '. Do NOT redraw or regenerate the image. Just reframe it like a camera zoom out — show more background on the sides if needed. The person must remain the EXACT same size, same position, same crop level. Same face, same body, same clothes, same everything. Only add more background space around the existing image using the same colors and environment. Think of it as outpainting — extending the canvas, not recreating. ' + posHint;
 
     try {
       const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
