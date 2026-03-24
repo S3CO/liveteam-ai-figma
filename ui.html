@@ -217,7 +217,11 @@
 <div class="preview" id="preview"></div>
 
 <script>
-// API key'i localStorage'dan al (kullanıcının bilgisayarında kalır)
+// v2 reset - eski key'leri temizle, yeni sistem ile başlat
+if (localStorage.getItem('liveteam_key_v2') !== 'yes') {
+  localStorage.removeItem('liveteam_gemini_key');
+  localStorage.setItem('liveteam_key_v2', 'yes');
+}
 let GEMINI_KEY = localStorage.getItem('liveteam_gemini_key') || '';
 
 function checkApiKey() {
