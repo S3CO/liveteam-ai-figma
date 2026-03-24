@@ -418,16 +418,26 @@ async function generate() {
   try {
     const allImages = [];
 
+    // Her varyasyon için prompt'u değiştir - farklı sonuçlar çıksın
+    const variationStyles = [
+      '', // orijinal
+      ', different angle, different pose, different lighting, alternative composition',
+      ', close-up shot, different hairstyle, different outfit, warm tones',
+      ', wide shot, different background, different color palette, cool tones',
+    ];
+
     for (let v = 0; v < variationCount; v++) {
       showProgress(startPct + (v / variationCount) * 55, `🎨 ${v + 1}/${variationCount} — ${translations[lang].generating}`);
 
+      const varPrompt = finalPrompt + variationStyles[v];
+
       let imageBytes;
       if (selectedModel === 'nano') {
-        imageBytes = await generateNanoBanana(finalPrompt, 'gemini-3.1-flash-image-preview');
+        imageBytes = await generateNanoBanana(varPrompt, 'gemini-3.1-flash-image-preview');
       } else if (selectedModel === 'nanopro') {
-        imageBytes = await generateNanoBanana(finalPrompt, 'gemini-3-pro-image-preview');
+        imageBytes = await generateNanoBanana(varPrompt, 'gemini-3-pro-image-preview');
       } else if (selectedModel === 'imagen4ultra') {
-        imageBytes = await generateImagen(finalPrompt, 'imagen-4.0-ultra-generate-001');
+        imageBytes = await generateImagen(varPrompt, 'imagen-4.0-ultra-generate-001');
       }
 
       allImages.push(imageBytes);
