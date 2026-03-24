@@ -81,7 +81,7 @@
 <div id="main" class="hidden">
 
 <div class="header">
-  <h1>🎨 Live <span>Team</span></h1>
+  <h1>🎨 Live <span>Team</span> <span id="keyTick" style="color:#5AC40A;font-size:14px">✅</span></h1>
   <p>AI Image → Figma</p>
 </div>
 
@@ -193,14 +193,37 @@ const varStyles = [
 // ============================================================
 // SETUP
 // ============================================================
-document.getElementById('startBtn').addEventListener('click', () => {
+document.getElementById('startBtn').addEventListener('click', async () => {
   const k = document.getElementById('keyInput').value.trim();
   if (!k || k.length < 10) return;
-  KEY = k;
-  if (document.getElementById('saveCheck').checked) {
-    parent.postMessage({ pluginMessage: { type: 'save-key', key: k } }, '*');
+
+  const btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  btn.textContent = '🔄 Проверяю ключ...';
+
+  // API key'i test et
+  try {
+    const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + k, { method: 'GET' }, 10000);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+
+    // Key geçerli
+    KEY = k;
+    if (document.getElementById('saveCheck').checked) {
+      parent.postMessage({ pluginMessage: { type: 'save-key', key: k } }, '*');
+    }
+    showMain();
+  } catch (e) {
+    btn.textContent = '❌ Неверный ключ — попробуйте другой';
+    btn.style.background = '#ff4444';
+    btn.style.color = '#fff';
+    setTimeout(() => {
+      btn.textContent = 'ПОЕХАЛИ! 🚀';
+      btn.style.background = '#5AC40A';
+      btn.style.color = '#1e1e1e';
+      btn.disabled = false;
+    }, 2000);
   }
-  showMain();
 });
 
 function showMain() {
@@ -418,12 +441,11 @@ window.onmessage = (e) => {
   const msg = e.data.pluginMessage;
   if (!msg) return;
   if (msg.type === 'init') {
+    // Her zaman setup göster, kayıtlı key varsa input'a doldur
     if (msg.key && msg.key.length > 10) {
-      KEY = msg.key;
-      showMain();
-    } else {
-      showSetup();
+      document.getElementById('keyInput').value = msg.key;
     }
+    showSetup();
   }
   if (msg.type === 'error') setStatus('❌ '+msg.message, 'err');
 };
