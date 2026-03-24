@@ -140,6 +140,16 @@
   <textarea id="prompt" placeholder="Например: красивая девушка в парижском кафе, закат"></textarea>
 </div>
 
+<div class="input-group">
+  <label id="lbl-variations">Варианты</label>
+  <div class="models" style="gap:4px">
+    <button class="model-btn" data-count="1" onclick="selectCount(this)" style="flex:none;padding:8px 16px">1️⃣</button>
+    <button class="model-btn" data-count="2" onclick="selectCount(this)" style="flex:none;padding:8px 16px">2️⃣</button>
+    <button class="model-btn active" data-count="3" onclick="selectCount(this)" style="flex:none;padding:8px 16px">3️⃣</button>
+    <button class="model-btn" data-count="4" onclick="selectCount(this)" style="flex:none;padding:8px 16px">4️⃣</button>
+  </div>
+</div>
+
 <div class="input-group ref-area">
   <label id="lbl-ref">📎 Референс (необязательно)</label>
   <div class="ref-drop" id="refDrop" onclick="document.getElementById('refInput').click()">
@@ -216,6 +226,13 @@ function resetApiKey() {
 
 let selectedModel = 'imagen4ultra';
 let refImageBase64 = null;
+let variationCount = 3;
+
+function selectCount(btn) {
+  document.querySelectorAll('[data-count]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  variationCount = parseInt(btn.dataset.count);
+}
 
 const translations = {
   ru: { model: 'Модель', prompt: 'Описание изображения', size: 'Размеры', custom: 'Свой размер', ref: '📎 Референс (необязательно)', placeholder: 'Например: красивая девушка в парижском кафе', btn: 'СОЗДАТЬ 🎨', generating: '⏳ Создаю...', placing: '📐 Размещаю...', done: '✅ Готово!', error: '❌ Ошибка', selected: 'Выбрано', selectAll: 'Все', deselectAll: 'Снять', of: 'из', processing: 'Обработка', refAnalyze: '🔍 Анализ референса...', refDrop: 'Перетащите или нажмите' },
@@ -375,46 +392,55 @@ async function generate() {
     showProgress(15, '✅');
   }
 
-  // AI üretim
-  setStatus(translations[lang].generating);
-  showProgress(refImageBase64 ? 18 : 5, '🎨 ' + translations[lang].generating);
+  // AI üretim - varyasyon sayısı kadar
+  const totalSteps = variationCount * sizes.length;
+  let currentStep = 0;
+  const startPct = refImageBase64 ? 18 : 5;
 
-  let genProgress = refImageBase64 ? 18 : 5;
-  const genInterval = setInterval(() => { if (genProgress < 55) { genProgress += Math.random() * 3; showProgress(Math.min(genProgress, 55), '🎨 ' + translations[lang].generating); } }, 500);
+  setStatus(translations[lang].generating);
 
   try {
-    let imageBytes;
+    const allImages = [];
 
-    if (selectedModel === 'nano') {
-      imageBytes = await generateNanoBanana(finalPrompt, 'gemini-3.1-flash-image-preview');
-    } else if (selectedModel === 'nanopro') {
-      imageBytes = await generateNanoBanana(finalPrompt, 'gemini-3-pro-image-preview');
-    } else if (selectedModel === 'imagen4ultra') {
-      imageBytes = await generateImagen(finalPrompt, 'imagen-4.0-ultra-generate-001');
-    } else {
-      imageBytes = await generateGPTImage(finalPrompt);
+    for (let v = 0; v < variationCount; v++) {
+      showProgress(startPct + (v / variationCount) * 55, `🎨 ${v + 1}/${variationCount} — ${translations[lang].generating}`);
+
+      let imageBytes;
+      if (selectedModel === 'nano') {
+        imageBytes = await generateNanoBanana(finalPrompt, 'gemini-3.1-flash-image-preview');
+      } else if (selectedModel === 'nanopro') {
+        imageBytes = await generateNanoBanana(finalPrompt, 'gemini-3-pro-image-preview');
+      } else if (selectedModel === 'imagen4ultra') {
+        imageBytes = await generateImagen(finalPrompt, 'imagen-4.0-ultra-generate-001');
+      }
+
+      allImages.push(imageBytes);
     }
 
-    clearInterval(genInterval);
-    showProgress(65, '✅');
+    showProgress(65, `✅ ${variationCount} variant`);
 
-    // Preview
-    const blob = new Blob([imageBytes], { type: 'image/png' });
+    // Preview - son görseli göster
+    const blob = new Blob([allImages[allImages.length - 1]], { type: 'image/png' });
     document.getElementById('preview').innerHTML = `<img src="${URL.createObjectURL(blob)}">`;
 
-    // Figma'ya yerleştir
+    // Figma'ya yerleştir - her varyasyon x her boyut
     setStatus(translations[lang].placing);
-    const perSize = 30 / sizes.length;
+    const placePct = 30 / (allImages.length * sizes.length);
+    let placeIdx = 0;
 
-    for (let i = 0; i < sizes.length; i++) {
-      const s = sizes[i];
-      showProgress(Math.round(65 + (i + 1) * perSize), `📐 ${i + 1}/${sizes.length} — ${s.w}×${s.h}`);
-      parent.postMessage({ pluginMessage: { type: 'place-image', imageBytes: Array.from(imageBytes), width: s.w, height: s.h, name: `${prompt.substring(0, 40)} (${s.w}×${s.h})` } }, '*');
-      await new Promise(r => setTimeout(r, 400));
+    for (let v = 0; v < allImages.length; v++) {
+      for (let i = 0; i < sizes.length; i++) {
+        const s = sizes[i];
+        placeIdx++;
+        showProgress(Math.round(65 + placeIdx * placePct), `📐 V${v + 1} ${s.w}×${s.h}`);
+        parent.postMessage({ pluginMessage: { type: 'place-image', imageBytes: Array.from(allImages[v]), width: s.w, height: s.h, name: `${prompt.substring(0, 30)} V${v + 1} (${s.w}×${s.h})` } }, '*');
+        await new Promise(r => setTimeout(r, 400));
+      }
     }
 
-    showProgress(100, `✅ ${sizes.length} banner!`);
-    setStatus(`${translations[lang].done} (${sizes.length})`, 'success');
+    const total = allImages.length * sizes.length;
+    showProgress(100, `✅ ${variationCount} variant × ${sizes.length} size = ${total} banner!`);
+    setStatus(`${translations[lang].done} (${total})`, 'success');
     setTimeout(hideProgress, 3000);
 
   } catch (err) {
