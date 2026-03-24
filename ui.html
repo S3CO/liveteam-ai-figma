@@ -187,8 +187,8 @@
 <div class="preview" id="preview"></div>
 
 <script>
-// API key'leri localStorage'dan al (her kullanıcı kendi key'ini girer)
-let GEMINI_KEY = localStorage.getItem('liveteam_gemini_key') || '';
+// Her açılışta API key iste
+let GEMINI_KEY = '';
 
 function checkApiKey() {
   if (!GEMINI_KEY || GEMINI_KEY.length < 10) {
@@ -206,12 +206,10 @@ function saveApiKey() {
   const key = document.getElementById('apiKeyInput').value.trim();
   if (!key) return;
   GEMINI_KEY = key;
-  localStorage.setItem('liveteam_gemini_key', key);
   checkApiKey();
 }
 
 function resetApiKey() {
-  localStorage.removeItem('liveteam_gemini_key');
   GEMINI_KEY = '';
   checkApiKey();
 }
