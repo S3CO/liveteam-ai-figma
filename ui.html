@@ -204,7 +204,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
 
     // Key geçerli
     KEY = k;
-    parent.postMessage({ pluginMessage: { type: 'save-key', key: k } }, '*');
+    // Key kaydetme - her açılışta yeniden girilecek
     showMain();
   } catch (e) {
     btn.textContent = '❌ Неверный ключ — попробуйте другой';
@@ -434,10 +434,7 @@ window.onmessage = (e) => {
   const msg = e.data.pluginMessage;
   if (!msg) return;
   if (msg.type === 'init') {
-    // Her zaman setup göster, kayıtlı key varsa input'a doldur
-    if (msg.key && msg.key.length > 10) {
-      document.getElementById('keyInput').value = msg.key;
-    }
+    // Her zaman boş setup göster
     showSetup();
   }
   if (msg.type === 'error') setStatus('❌ '+msg.message, 'err');
