@@ -55,15 +55,18 @@ The plugin uses **Google AI Studio** API. It's free but you need to set up billi
 2. If you don't have a project, click **"Select a project"** → **"New Project"**
 3. Name it anything (e.g., `LiveTeam`) → click **"Create"**
 
-### Step 2: Enable Billing
+### Step 2: Enable Billing & Link to Project
 
 1. In Google Cloud Console, go to **☰ Menu** → **Billing**
-2. Click **"Link a billing account"**
-3. If you don't have one, click **"Create billing account"**
-4. Enter your credit card details
-5. Link the billing account to your project
+2. Click **"Create billing account"** if you don't have one → enter credit card
+3. **IMPORTANT:** Go back to your project → **☰ Menu** → **Billing**
+4. Click **"Link a billing account"** → select your billing account
+5. If you see **"Activate billing"** anywhere — click it!
+6. Verify: Go to [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → your key should NOT show "Activate billing" in the Billing Tier column. If it does, billing is not linked.
 
-> ⚠️ **Don't worry!** You won't be charged. Google gives a generous free tier. Image generation costs only $0.001-0.005 per image if you exceed the free quota.
+> ⚠️ **Common mistake:** Having a billing account is NOT enough. You must **link it to your project**. If you see "Activate billing" next to your API key, it's not linked yet.
+
+> 💡 **Don't worry about charges!** Google gives $300 free credit (90 days). Image generation costs only $0.001-0.005 per image.
 
 ### Step 3: Enable the API
 
@@ -142,14 +145,18 @@ git clone https://github.com/S3CO/liveteam-ai-figma.git
 2. Нажмите **"Выбрать проект"** → **"Новый проект"**
 3. Назовите как угодно (например, `LiveTeam`) → **"Создать"**
 
-#### Шаг 2: Подключите биллинг
+#### Шаг 2: Подключите биллинг И привяжите к проекту
 
 1. В Google Cloud Console: **☰ Меню** → **Billing (Оплата)**
-2. Нажмите **"Привязать платёжный аккаунт"**
-3. Если нет аккаунта — создайте новый, введите данные карты
-4. Привяжите к проекту
+2. Создайте платёжный аккаунт, если его нет → введите данные карты
+3. **ВАЖНО:** Вернитесь в проект → **☰ Меню** → **Billing**
+4. Нажмите **"Link a billing account"** → выберите ваш аккаунт
+5. Если видите **"Activate billing"** — нажмите!
+6. Проверка: откройте [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → рядом с ключом НЕ должно быть "Activate billing". Если есть — биллинг не привязан.
 
-> ⚠️ **Не переживайте!** Деньги не спишут. Google даёт щедрый бесплатный лимит. Если превысите — одно изображение стоит $0.001-0.005.
+> ⚠️ **Частая ошибка:** Иметь платёжный аккаунт НЕДОСТАТОЧНО. Нужно **привязать его к проекту**. Если видите "Activate billing" — он не привязан!
+
+> 💡 **Не переживайте!** Google даёт $300 бесплатного кредита (90 дней). Одно изображение стоит $0.001-0.005.
 
 #### Шаг 3: Включите API
 
@@ -219,14 +226,18 @@ git clone https://github.com/S3CO/liveteam-ai-figma.git
 2. **"Proje seç"** → **"Yeni Proje"** tıkla
 3. İsim ver (örn: `LiveTeam`) → **"Oluştur"**
 
-#### Adım 2: Billing (Faturalandırma) Bağla
+#### Adım 2: Billing Bağla VE Projeye Bağla
 
 1. Google Cloud Console'da: **☰ Menü** → **Billing**
-2. **"Faturalandırma hesabı bağla"** tıkla
-3. Hesap yoksa yeni oluştur, kredi kartı bilgilerini gir
-4. Projeye bağla
+2. Billing hesabı yoksa oluştur → kredi kartı gir
+3. **ÖNEMLİ:** Projeye geri dön → **☰ Menü** → **Billing**
+4. **"Link a billing account"** tıkla → billing hesabını seç
+5. **"Activate billing"** görüyorsan — tıkla!
+6. Kontrol: [aistudio.google.com/apikey](https://aistudio.google.com/apikey) aç → key yanında "Activate billing" OLMAMALI. Varsa bağlanmamış demektir.
 
-> ⚠️ **Endişelenme!** Para çekmez. Google cömert ücretsiz kota veriyor. Aşarsan bile görsel başına $0.001-0.005.
+> ⚠️ **Sık yapılan hata:** Billing hesabı açmak YETMİYOR. Projeye **bağlamak** lazım. "Activate billing" görüyorsan bağlı değil!
+
+> 💡 **Endişelenme!** Google $300 bedava kredi veriyor (90 gün). Görsel başına $0.001-0.005.
 
 #### Adım 3: API'yi Aktif Et
 
