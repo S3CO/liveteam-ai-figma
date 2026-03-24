@@ -217,12 +217,8 @@
 <div class="preview" id="preview"></div>
 
 <script>
-// v2 reset - eski key'leri temizle, yeni sistem ile başlat
-if (localStorage.getItem('liveteam_key_v2') !== 'yes') {
-  localStorage.removeItem('liveteam_gemini_key');
-  localStorage.setItem('liveteam_key_v2', 'yes');
-}
-let GEMINI_KEY = localStorage.getItem('liveteam_gemini_key') || '';
+// API key - Figma clientStorage üzerinden (localStorage değil!)
+let GEMINI_KEY = '';
 
 function checkApiKey() {
   if (!GEMINI_KEY || GEMINI_KEY.length < 10) {
@@ -240,7 +236,8 @@ function saveApiKey() {
   if (!key) return;
   GEMINI_KEY = key;
   if (document.getElementById('saveKeyCheck').checked) {
-    localStorage.setItem('liveteam_gemini_key', key);
+    // Figma clientStorage'a kaydet (code.js üzerinden)
+    parent.postMessage({ pluginMessage: { type: 'save-key', key: key } }, '*');
   }
   checkApiKey();
 }
@@ -594,14 +591,30 @@ async function generateGPTImage(prompt) {
   throw new Error('No image data');
 }
 
-// Figma mesaj
+// Figma'dan mesaj al
 window.onmessage = (event) => {
   const msg = event.data.pluginMessage;
-  if (msg?.type === 'error') setStatus(`${translations[lang].error}: ${msg.message}`, 'error');
+  if (!msg) return;
+
+  if (msg.type === 'saved-key') {
+    // Başlangıçta Figma'dan kayıtlı key geldi
+    if (msg.key && msg.key.length > 10) {
+      GEMINI_KEY = msg.key;
+    }
+    checkApiKey();
+  } else if (msg.type === 'key-saved') {
+    // Key başarıyla kaydedildi
+  } else if (msg.type === 'key-deleted') {
+    GEMINI_KEY = '';
+    checkApiKey();
+  } else if (msg.type === 'error') {
+    setStatus(`${translations[lang].error}: ${msg.message}`, 'error');
+  }
 };
 
-// Başlangıçta API key kontrol et
-checkApiKey();
+// Başlangıçta setup göster, Figma'dan key gelince otomatik geçecek
+document.getElementById('setupPanel').style.display = 'block';
+document.getElementById('mainPanel').style.display = 'none';
 </script>
 
 </div><!-- /mainPanel -->

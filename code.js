@@ -1,28 +1,28 @@
-// Tuti AI Image Generator - Figma Plugin v4
-// Yan yana dizilim, 40px gap, aynı üst hiza
+// Live Team AI - Figma Plugin v5
+// Yan yana dizilim + clientStorage API key
 
-figma.showUI(__html__, { width: 360, height: 620 });
+figma.showUI(__html__, { width: 360, height: 650 });
 
 const GAP = 40;
 
-// İlk banner'ın Y pozisyonunu bul (tüm banner'lar aynı hizada olacak)
+// Başlangıçta kayıtlı key'i UI'a gönder
+async function init() {
+  const savedKey = await figma.clientStorage.getAsync('gemini_key');
+  figma.ui.postMessage({ type: 'saved-key', key: savedKey || '' });
+}
+init();
+
 function getBaseY() {
-  const aiFrames = figma.currentPage.children.filter(
-    n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/)
-  );
-  if (aiFrames.length === 0) return figma.viewport.center.y - 300;
-  return aiFrames[0].y;
+  const frames = figma.currentPage.children.filter(n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/));
+  if (frames.length === 0) return figma.viewport.center.y - 300;
+  return frames[0].y;
 }
 
-// Sıradaki X pozisyonunu bul
 function getNextX() {
-  const aiFrames = figma.currentPage.children.filter(
-    n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/)
-  );
-  if (aiFrames.length === 0) return figma.viewport.center.x - 400;
-
+  const frames = figma.currentPage.children.filter(n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/));
+  if (frames.length === 0) return figma.viewport.center.x - 400;
   let maxRight = -Infinity;
-  for (const f of aiFrames) {
+  for (const f of frames) {
     const right = f.x + f.width;
     if (right > maxRight) maxRight = right;
   }
@@ -30,6 +30,21 @@ function getNextX() {
 }
 
 figma.ui.onmessage = async (msg) => {
+  // API key kaydet
+  if (msg.type === 'save-key') {
+    await figma.clientStorage.setAsync('gemini_key', msg.key);
+    figma.ui.postMessage({ type: 'key-saved' });
+    return;
+  }
+
+  // API key sil
+  if (msg.type === 'delete-key') {
+    await figma.clientStorage.deleteAsync('gemini_key');
+    figma.ui.postMessage({ type: 'key-deleted' });
+    return;
+  }
+
+  // Görsel yerleştir
   if (msg.type === 'place-image') {
     try {
       const { imageBytes, width, height, name } = msg;
@@ -39,10 +54,8 @@ figma.ui.onmessage = async (msg) => {
       const frame = figma.createFrame();
       frame.name = name;
       frame.resize(width, height);
-
-      // Yan yana + aynı üst hiza
       frame.x = getNextX();
-      frame.y = getBaseY(); // Hepsi aynı Y'de
+      frame.y = getBaseY();
 
       frame.fills = [{
         type: 'IMAGE',
@@ -52,16 +65,12 @@ figma.ui.onmessage = async (msg) => {
 
       frame.cornerRadius = 8;
 
-      // Tüm AI frame'leri seç ve görünüme al
-      const allAI = figma.currentPage.children.filter(
-        n => n.name.startsWith('AI:') && n.type === 'FRAME'
-      );
-      figma.currentPage.selection = allAI;
-      figma.viewport.scrollAndZoomIntoView(allAI);
+      const allFrames = figma.currentPage.children.filter(n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/));
+      figma.currentPage.selection = allFrames;
+      figma.viewport.scrollAndZoomIntoView(allFrames);
 
       figma.notify(`✅ ${name}`);
       figma.ui.postMessage({ type: 'placed', width, height });
-
     } catch (error) {
       figma.ui.postMessage({ type: 'error', message: error.message });
       figma.notify(`❌ ${error.message}`, { error: true });
