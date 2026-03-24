@@ -371,7 +371,11 @@ document.getElementById('genBtn').addEventListener('click', async () => {
       showBar(15+(v/vars)*50, msgs[Math.min(Math.floor(sec/8),msgs.length-1)]+' '+( v+1)+'/'+vars+' — '+sec+'с');
     }, 1000);
 
-    const vPrompt = finalPrompt + varStyles[v];
+    // Yatay boyut seçildiyse karakteri sağa yerleştir
+    const maxW = Math.max(...selSizes.map(s => s.w));
+    const maxH = Math.max(...selSizes.map(s => s.h));
+    const layoutHint = maxW > maxH ? ', place the main character/person on the RIGHT side of the image, leave LEFT side empty for text' : '';
+    const vPrompt = finalPrompt + varStyles[v] + layoutHint;
     try {
       let bytes;
       if (model === 'imagen') {
