@@ -155,6 +155,15 @@
   </div>
 </div>
 
+<div class="group">
+  <label>Позиция персонажа / Character position</label>
+  <div class="row">
+    <div class="btn" data-pos="left" style="flex:1;text-align:center">◀️ Sol</div>
+    <div class="btn on" data-pos="center" style="flex:1;text-align:center">🔘 Orta</div>
+    <div class="btn" data-pos="right" style="flex:1;text-align:center">▶️ Sağ</div>
+  </div>
+</div>
+
 <div class="row" style="gap:8px">
   <button class="big-btn" id="genBtn" style="flex:3">СОЗДАТЬ 🎨</button>
   <button class="big-btn" id="resizeBtn" style="flex:1;background:#2c2c2c;color:#5AC40A;border:2px solid #5AC40A;font-size:12px;padding:8px">📐 RESIZE</button>
@@ -177,6 +186,7 @@ let KEY = '';
 let model = 'nanopro';
 let vars = 3;
 let refB64 = null;
+let charPosition = 'center';
 
 const GEMINI_MODELS = {
   nano: 'gemini-3.1-flash-image-preview',
@@ -259,6 +269,15 @@ document.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', (
   document.querySelectorAll('[data-v]').forEach(x => x.classList.remove('on'));
   b.classList.add('on');
   vars = parseInt(b.dataset.v);
+}));
+
+// ============================================================
+// CHARACTER POSITION
+// ============================================================
+document.querySelectorAll('[data-pos]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-pos]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  charPosition = b.dataset.pos;
 }));
 
 // ============================================================
@@ -371,10 +390,10 @@ document.getElementById('genBtn').addEventListener('click', async () => {
       showBar(15+(v/vars)*50, msgs[Math.min(Math.floor(sec/8),msgs.length-1)]+' '+( v+1)+'/'+vars+' — '+sec+'с');
     }, 1000);
 
-    // Yatay boyut seçildiyse karakteri sağa yerleştir
     const maxW = Math.max(...selSizes.map(s => s.w));
     const maxH = Math.max(...selSizes.map(s => s.h));
-    const layoutHint = maxW > maxH ? ', place the main character/person on the RIGHT side of the image, leave LEFT side empty for text' : '';
+    const posPrompts = { left: ', place the main character on the LEFT side, leave RIGHT side empty', center: '', right: ', place the main character on the RIGHT side, leave LEFT side empty' };
+    const layoutHint = maxW > maxH ? (posPrompts[charPosition] || '') : '';
     const vPrompt = finalPrompt + varStyles[v] + layoutHint;
     try {
       let bytes;
@@ -477,7 +496,9 @@ async function handleAIResize(data) {
 
     // Aspect ratio belirle
     const ratio = s.w > s.h ? 'landscape' : s.w < s.h ? 'portrait' : 'square';
-    const prompt = 'STRICT RULES: Do NOT change the character, face, clothing, pose, or any visible part of the original image. Only extend the canvas to ' + s.w + 'x' + s.h + ' ' + ratio + ' format. Fill the new empty areas with a simple solid color or gradient that matches the existing background colors. Keep it minimal - just extend the background colors smoothly. The original image content must remain 100% identical and unchanged.';
+    const posMap = { left: 'Place the character on the LEFT side.', center: 'Keep the character in the CENTER.', right: 'Place the character on the RIGHT side.' };
+    const posHint = posMap[charPosition] || posMap.center;
+    const prompt = 'Adapt this image to ' + s.w + 'x' + s.h + ' ' + ratio + ' format. STRICT RULES: Keep the character face, clothing, pose 100% identical. ' + posHint + ' Extend the background naturally using the same colors and style. Fill empty areas with matching background colors/gradient. Do NOT add new objects or change the character in any way.';
 
     try {
       const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
