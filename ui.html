@@ -2,124 +2,83 @@
 <html>
 <head>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', -apple-system, sans-serif; background: #1e1e1e; color: #fff; padding: 16px; overflow-y: auto; }
-
-  .header { text-align: center; margin-bottom: 14px; }
-  .header h1 { font-size: 18px; font-weight: 700; }
-  .header h1 span { color: #5AC40A; }
-  .header p { font-size: 11px; color: #888; margin-top: 4px; }
-
-  .input-group { margin-bottom: 10px; }
-  .input-group label { display: block; font-size: 11px; color: #aaa; margin-bottom: 4px; font-weight: 600; }
-
-  textarea { width: 100%; height: 60px; background: #2c2c2c; border: 1px solid #444; border-radius: 6px;
-    color: #fff; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; }
-  textarea:focus { border-color: #5AC40A; outline: none; }
-  textarea::placeholder { color: #666; }
-
-  /* Model seçimi */
-  .models { display: flex; gap: 5px; margin-bottom: 10px; }
-  .model-btn { flex: 1; padding: 8px 6px; background: #2c2c2c; border: 1px solid #444; border-radius: 6px;
-    color: #ccc; font-size: 10px; cursor: pointer; font-weight: 600; text-align: center; }
-  .model-btn:hover { border-color: #5AC40A; }
-  .model-btn.active { background: #5AC40A; color: #1e1e1e; border-color: #5AC40A; }
-  .model-btn .model-name { display: block; font-weight: 800; font-size: 11px; }
-  .model-btn .model-info { display: block; font-size: 9px; opacity: 0.7; margin-top: 2px; }
-
-  /* Multi-select sizes */
-  .sizes { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
-  .size-btn { padding: 5px 10px; background: #2c2c2c; border: 1px solid #444; border-radius: 6px;
-    color: #ccc; font-size: 10px; cursor: pointer; font-weight: 600; user-select: none; }
-  .size-btn:hover { border-color: #5AC40A; color: #5AC40A; }
-  .size-btn.active { background: #5AC40A; color: #1e1e1e; border-color: #5AC40A; }
-  .size-btn .remove { display: none; margin-left: 4px; font-size: 9px; }
-  .size-btn.custom .remove { display: inline; cursor: pointer; }
-
-  .hint { font-size: 10px; color: #666; margin-bottom: 8px; }
-
-  .add-size { display: flex; gap: 5px; margin-bottom: 10px; align-items: center; }
-  .add-size input { width: 70px; background: #2c2c2c; border: 1px solid #444; border-radius: 6px;
-    color: #fff; padding: 6px; font-size: 11px; text-align: center; }
-  .add-size input:focus { border-color: #5AC40A; outline: none; }
-  .add-size span { color: #666; font-size: 12px; }
-  .add-btn { padding: 6px 14px; background: #2c2c2c; border: 1px solid #5AC40A; border-radius: 6px;
-    color: #5AC40A; font-size: 11px; cursor: pointer; font-weight: 700; }
-  .add-btn:hover { background: #5AC40A; color: #1e1e1e; }
-
-  .generate-btn { width: 100%; padding: 12px; background: #5AC40A; color: #1e1e1e; border: none;
-    border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; letter-spacing: 1px; }
-  .generate-btn:hover { background: #4aad08; }
-  .generate-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
-
-  .status { text-align: center; margin-top: 10px; font-size: 12px; color: #888; min-height: 20px; }
-  .status.error { color: #ff4444; }
-  .status.success { color: #5AC40A; }
-
-  .progress-bar-wrap { margin-top: 10px; display: none; }
-  .progress-bar-wrap.active { display: block; }
-  .progress-bar-bg { width: 100%; height: 8px; background: #2c2c2c; border-radius: 4px; overflow: hidden; }
-  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #5AC40A, #7ddf38); border-radius: 4px;
-    width: 0%; transition: width 0.3s ease; }
-  .progress-bar-fill.generating { animation: pulse-bar 1.5s ease-in-out infinite; }
-  @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:0.5} }
-  .progress-text { text-align: center; font-size: 10px; color: #888; margin-top: 4px; }
-
-  .preview { margin-top: 10px; text-align: center; }
-  .preview img { max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #333; }
-
-  .lang { display: flex; gap: 4px; justify-content: center; margin-bottom: 12px; }
-  .lang-btn { padding: 4px 10px; background: #2c2c2c; border: 1px solid #444; border-radius: 4px;
-    color: #888; font-size: 10px; cursor: pointer; }
-  .lang-btn.active { background: #5AC40A; color: #1e1e1e; border-color: #5AC40A; }
-
-  .section-title { font-size: 11px; color: #aaa; font-weight: 600; margin-bottom: 6px; display: flex; justify-content: space-between; }
-  .select-all { font-size: 10px; color: #5AC40A; cursor: pointer; text-decoration: underline; }
-
-  .ref-area { margin-bottom: 10px; }
-  .ref-drop { border: 2px dashed #444; border-radius: 8px; padding: 12px; text-align: center;
-    cursor: pointer; transition: all 0.3s; min-height: 50px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; position: relative; }
-  .ref-drop:hover { border-color: #5AC40A; }
-  .ref-drop.has-image { border-color: #5AC40A; padding: 6px; }
-  .ref-drop .ref-text { font-size: 11px; color: #666; }
-  .ref-drop .ref-icon { font-size: 20px; }
-  .ref-drop img { max-width: 100%; max-height: 80px; border-radius: 6px; }
-  .ref-drop .ref-remove { position: absolute; top: 4px; right: 8px; background: #ff4444; color: #fff;
-    border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; line-height: 18px; }
-  .ref-hidden { display: none; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',-apple-system,sans-serif;background:#1e1e1e;color:#fff;padding:16px;overflow-y:auto}
+  .hidden{display:none!important}
+  label{display:block;font-size:11px;color:#aaa;margin-bottom:4px;font-weight:600}
+  .group{margin-bottom:10px}
+  textarea{width:100%;height:60px;background:#2c2c2c;border:1px solid #444;border-radius:6px;color:#fff;padding:10px;font-size:13px;font-family:inherit;resize:vertical}
+  textarea:focus{border-color:#5AC40A;outline:none}
+  textarea::placeholder{color:#666}
+  input[type=text],input[type=number]{background:#2c2c2c;border:1px solid #444;border-radius:6px;color:#fff;padding:8px;font-size:12px;font-family:inherit}
+  input:focus{border-color:#5AC40A;outline:none}
+  .row{display:flex;gap:5px;flex-wrap:wrap}
+  .btn{padding:6px 12px;background:#2c2c2c;border:1px solid #444;border-radius:6px;color:#ccc;font-size:10px;cursor:pointer;font-weight:600;user-select:none}
+  .btn:hover{border-color:#5AC40A;color:#5AC40A}
+  .btn.on{background:#5AC40A;color:#1e1e1e;border-color:#5AC40A}
+  .btn .x{display:none;margin-left:4px;font-size:9px}.btn.custom .x{display:inline}
+  .big-btn{width:100%;padding:12px;background:#5AC40A;color:#1e1e1e;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:1px}
+  .big-btn:hover{background:#4aad08}
+  .big-btn:disabled{background:#333;color:#666;cursor:not-allowed}
+  .status{text-align:center;margin-top:10px;font-size:12px;color:#888;min-height:18px}
+  .status.err{color:#ff4444}.status.ok{color:#5AC40A}
+  .bar-wrap{margin-top:10px;display:none}.bar-wrap.on{display:block}
+  .bar-bg{width:100%;height:8px;background:#2c2c2c;border-radius:4px;overflow:hidden}
+  .bar-fill{height:100%;background:linear-gradient(90deg,#5AC40A,#7ddf38);border-radius:4px;width:0%;transition:width .3s}
+  .bar-fill.pulse{animation:p 1.5s infinite}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.5}}
+  .bar-text{text-align:center;font-size:10px;color:#888;margin-top:4px}
+  .preview{margin-top:10px;text-align:center}.preview img{max-width:100%;max-height:180px;border-radius:8px;border:1px solid #333}
+  .lang{display:flex;gap:4px;justify-content:center;margin-bottom:12px}
+  .lang .btn{padding:4px 10px;font-size:10px}
+  .header{text-align:center;margin-bottom:14px}
+  .header h1{font-size:18px;font-weight:700}.header h1 span{color:#5AC40A}
+  .header p{font-size:11px;color:#888;margin-top:4px}
+  .ref-drop{border:2px dashed #444;border-radius:8px;padding:12px;text-align:center;cursor:pointer;min-height:50px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;position:relative}
+  .ref-drop:hover{border-color:#5AC40A}
+  .ref-drop.has{border-color:#5AC40A;padding:6px}
+  .ref-drop img{max-width:100%;max-height:80px;border-radius:6px}
+  .ref-drop .rm{position:absolute;top:4px;right:8px;background:#ff4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;line-height:18px}
+  .hint{font-size:10px;color:#666;margin-top:4px}
+  .add-row{display:flex;gap:5px;align-items:center}
+  .add-row input{width:70px;text-align:center}
+  .add-row span{color:#666;font-size:12px}
+  .add-btn{padding:6px 14px;background:#2c2c2c;border:1px solid #5AC40A;border-radius:6px;color:#5AC40A;font-size:11px;cursor:pointer;font-weight:700}
+  .add-btn:hover{background:#5AC40A;color:#1e1e1e}
+  .title-row{font-size:11px;color:#aaa;font-weight:600;display:flex;justify-content:space-between}
+  .link{font-size:10px;color:#5AC40A;cursor:pointer;text-decoration:underline}
+  .check-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer}
+  .check-row input{width:16px;height:16px;accent-color:#5AC40A}
+  .check-row span{font-size:12px;color:#aaa}
 </style>
 </head>
 <body>
 
-<!-- SETUP PANELİ (API key girilmemişse) -->
-<div id="setupPanel" style="display:none; text-align:center; padding: 30px 20px;">
-  <h1 style="font-size:24px; margin-bottom:4px;">🎨 Live <span style="color:#5AC40A">Team</span></h1>
-  <p style="font-size:12px; color:#888; margin-bottom:6px;">AI Image Generator for Figma</p>
-  <p style="font-size:20px; margin-bottom:20px;">🍌🎰🖼️✨</p>
-
-  <label style="font-size:12px; color:#aaa; display:block; text-align:left; margin-bottom:6px;">Google AI API Key</label>
-  <input type="text" id="apiKeyInput" placeholder="AIzaSy..." style="width:100%; padding:10px; background:#2c2c2c; border:1px solid #444; border-radius:6px; color:#fff; font-size:13px; margin-bottom:8px;">
-  <p style="font-size:10px; color:#666; margin-bottom:10px; text-align:left;">
-    🔑 Получите бесплатный ключ: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A;">aistudio.google.com/apikey</a>
-  </p>
-  <label style="display:flex; align-items:center; gap:8px; margin-bottom:16px; cursor:pointer;">
-    <input type="checkbox" id="saveKeyCheck" checked style="width:16px; height:16px; accent-color:#5AC40A; cursor:pointer;">
-    <span style="font-size:12px; color:#aaa;">Запомнить ключ / Save key / Key'i kaydet</span>
-  </label>
-  <p style="font-size:9px; color:#555; margin-bottom:16px; text-align:left;">
-    🔒 Ключ хранится только на вашем компьютере.
-  </p>
-  <button onclick="saveApiKey()" style="width:100%; padding:12px; background:#5AC40A; color:#1e1e1e; border:none; border-radius:8px; font-size:14px; font-weight:800; cursor:pointer;">ПОЕХАЛИ! 🚀</button>
-
-  <div style="margin-top:20px; padding:14px; background:#2c2c2c; border-radius:8px; border:1px solid #333;">
-    <p style="font-size:11px; color:#ccc; margin-bottom:6px;">⭐ Нравится плагин? Поставьте звезду!</p>
-    <p style="font-size:10px; color:#888; margin-bottom:8px;">Каждая звезда — это +1 к удаче в генерации 🍀<br>Без звезды AI рисует только собачек 🐶</p>
-    <a href="https://github.com/S3CO/liveteam-ai-figma" target="_blank" style="display:inline-block; padding:8px 20px; background:#333; border:1px solid #5AC40A; border-radius:6px; color:#5AC40A; font-size:11px; font-weight:700; text-decoration:none;">⭐ Star on GitHub</a>
+<!-- ========== SETUP ========== -->
+<div id="setup">
+  <div style="text-align:center;padding:20px 0">
+    <h1 style="font-size:24px">🎨 Live <span style="color:#5AC40A">Team</span></h1>
+    <p style="font-size:12px;color:#888;margin-top:4px">AI Image Generator for Figma</p>
+    <p style="font-size:20px;margin:16px 0">🍌🎰🖼️✨</p>
+  </div>
+  <label>Google AI API Key</label>
+  <input type="text" id="keyInput" placeholder="AIzaSy..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
+  <p style="font-size:10px;color:#666;margin-bottom:8px">🔑 <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A">aistudio.google.com/apikey</a></p>
+  <div class="check-row">
+    <input type="checkbox" id="saveCheck" checked>
+    <span>Запомнить / Save / Kaydet</span>
+  </div>
+  <p style="font-size:9px;color:#555;margin-bottom:12px">🔒 Ключ хранится только на вашем компьютере.</p>
+  <button class="big-btn" id="startBtn">ПОЕХАЛИ! 🚀</button>
+  <div style="margin-top:16px;padding:12px;background:#2c2c2c;border-radius:8px;border:1px solid #333;text-align:center">
+    <p style="font-size:11px;color:#ccc;margin-bottom:4px">⭐ Нравится? Поставьте звезду!</p>
+    <p style="font-size:10px;color:#888;margin-bottom:8px">Каждая ⭐ = +1 к удаче 🍀 Без звезды AI рисует 🐶</p>
+    <a href="https://github.com/S3CO/liveteam-ai-figma" target="_blank" style="display:inline-block;padding:6px 16px;background:#333;border:1px solid #5AC40A;border-radius:6px;color:#5AC40A;font-size:11px;font-weight:700;text-decoration:none">⭐ Star on GitHub</a>
   </div>
 </div>
 
-<!-- ANA PANEL -->
-<div id="mainPanel">
+<!-- ========== MAIN ========== -->
+<div id="main" class="hidden">
 
 <div class="header">
   <h1>🎨 Live <span>Team</span></h1>
@@ -127,497 +86,348 @@
 </div>
 
 <div class="lang">
-  <button class="lang-btn active" onclick="setLang('ru')">🇷🇺 RU</button>
-  <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
-  <button class="lang-btn" onclick="setLang('tr')">🇹🇷 TR</button>
+  <div class="btn on" data-lang="ru">🇷🇺 RU</div>
+  <div class="btn" data-lang="en">🇬🇧 EN</div>
+  <div class="btn" data-lang="tr">🇹🇷 TR</div>
 </div>
 
-<div class="input-group">
-  <label id="lbl-model">Модель</label>
-  <div class="models">
-    <button class="model-btn" data-model="nano" onclick="selectModel(this)">
-      <span class="model-name">🍌 Banana 2</span>
-      <span class="model-info">Бесплатно • Быстро</span>
-    </button>
-    <button class="model-btn active" data-model="nanopro" onclick="selectModel(this)">
-      <span class="model-name">🍌 Banana Pro</span>
-      <span class="model-info">Бесплатно • Реалистично</span>
-    </button>
-    <button class="model-btn" data-model="imagen4ultra" onclick="selectModel(this)">
-      <span class="model-name">🖼 Imagen 4 Ultra</span>
-      <span class="model-info">Бесплатно • Лучшее качество</span>
-    </button>
+<div class="group">
+  <label id="L_model">Модель</label>
+  <div class="row">
+    <div class="btn" data-m="nano">🍌 Banana 2<br><span style="font-size:9px;opacity:.6">Быстро</span></div>
+    <div class="btn on" data-m="nanopro">🍌 Banana Pro<br><span style="font-size:9px;opacity:.6">Реалистично</span></div>
+    <div class="btn" data-m="imagen">🖼 Imagen Ultra<br><span style="font-size:9px;opacity:.6">Лучшее</span></div>
   </div>
 </div>
 
-<div class="input-group">
-  <label id="lbl-prompt">Описание изображения</label>
-  <textarea id="prompt" placeholder="Например: красивая девушка в парижском кафе, закат"></textarea>
+<div class="group">
+  <label id="L_prompt">Описание</label>
+  <textarea id="prompt" placeholder="баннер с девушкой в казино..."></textarea>
 </div>
 
-<div class="input-group">
-  <label id="lbl-variations">Варианты</label>
-  <div class="models" style="gap:4px">
-    <button class="model-btn" data-count="1" onclick="selectCount(this)" style="flex:none;padding:8px 16px">1️⃣</button>
-    <button class="model-btn" data-count="2" onclick="selectCount(this)" style="flex:none;padding:8px 16px">2️⃣</button>
-    <button class="model-btn active" data-count="3" onclick="selectCount(this)" style="flex:none;padding:8px 16px">3️⃣</button>
-    <button class="model-btn" data-count="4" onclick="selectCount(this)" style="flex:none;padding:8px 16px">4️⃣</button>
+<div class="group">
+  <label id="L_vars">Варианты</label>
+  <div class="row">
+    <div class="btn" data-v="1">1️⃣</div>
+    <div class="btn" data-v="2">2️⃣</div>
+    <div class="btn on" data-v="3">3️⃣</div>
+    <div class="btn" data-v="4">4️⃣</div>
   </div>
 </div>
 
-<div class="input-group">
-  <label id="lbl-name">Название баннера</label>
-  <input type="text" id="bannerName" placeholder="Например: баннер с девушкой" style="width:100%; padding:10px; background:#2c2c2c; border:1px solid #444; border-radius:6px; color:#fff; font-size:13px; font-family:inherit;">
+<div class="group">
+  <label id="L_name">Название</label>
+  <input type="text" id="bname" placeholder="banner" style="width:100%;padding:10px;font-size:13px">
 </div>
 
-<div class="input-group ref-area">
-  <label id="lbl-ref">📎 Референс (необязательно)</label>
-  <div class="ref-drop" id="refDrop" onclick="document.getElementById('refInput').click()">
-    <span class="ref-icon">📎</span>
-    <span class="ref-text">Перетащите или нажмите</span>
+<div class="group">
+  <label id="L_ref">📎 Референс</label>
+  <div class="ref-drop" id="refDrop">
+    <span style="font-size:20px">📎</span>
+    <span style="font-size:11px;color:#666" id="refLabel">Перетащите или нажмите</span>
   </div>
-  <input type="file" id="refInput" class="ref-hidden" accept="image/*" onchange="handleRefImage(this)">
+  <input type="file" id="refFile" accept="image/*" style="display:none">
 </div>
 
-<div class="input-group">
-  <div class="section-title">
-    <span id="lbl-size">Размеры</span>
-    <span class="select-all" id="selectAll" onclick="toggleAll()">Выбрать все</span>
+<div class="group">
+  <div class="title-row">
+    <span id="L_sizes">Размеры</span>
+    <span class="link" id="selAll">Все</span>
   </div>
-  <div class="sizes" id="sizes">
-    <button class="size-btn active" data-w="1024" data-h="1024" onclick="toggleSize(this)">1024×1024</button>
-    <button class="size-btn" data-w="1024" data-h="1536" onclick="toggleSize(this)">1024×1536</button>
-    <button class="size-btn" data-w="1536" data-h="1024" onclick="toggleSize(this)">1536×1024</button>
-    <button class="size-btn" data-w="512" data-h="512" onclick="toggleSize(this)">512×512</button>
-    <button class="size-btn" data-w="1080" data-h="1080" onclick="toggleSize(this)">1080×1080</button>
-    <button class="size-btn" data-w="1080" data-h="1920" onclick="toggleSize(this)">1080×1920</button>
-    <button class="size-btn" data-w="900" data-h="600" onclick="toggleSize(this)">900×600</button>
-    <button class="size-btn" data-w="1200" data-h="628" onclick="toggleSize(this)">1200×628</button>
+  <div class="row" id="sizes">
+    <div class="btn on" data-s="1024,1024">1024×1024</div>
+    <div class="btn" data-s="1024,1536">1024×1536</div>
+    <div class="btn" data-s="1536,1024">1536×1024</div>
+    <div class="btn" data-s="512,512">512×512</div>
+    <div class="btn" data-s="1080,1080">1080×1080</div>
+    <div class="btn" data-s="1080,1920">1080×1920</div>
+    <div class="btn" data-s="900,600">900×600</div>
+    <div class="btn" data-s="1200,628">1200×628</div>
   </div>
-  <div class="hint" id="hint">Выбрано: 1</div>
+  <div class="hint" id="sizeHint">1</div>
 </div>
 
-<div class="input-group">
-  <label id="lbl-custom">Свой размер</label>
-  <div class="add-size">
-    <input type="number" id="newW" placeholder="W">
+<div class="group">
+  <label id="L_custom">Свой размер</label>
+  <div class="add-row">
+    <input type="number" id="cw" placeholder="W">
     <span>×</span>
-    <input type="number" id="newH" placeholder="H">
-    <button class="add-btn" onclick="addCustomSize()">+</button>
+    <input type="number" id="ch" placeholder="H">
+    <div class="add-btn" id="addSize">+</div>
   </div>
 </div>
 
-<button class="generate-btn" id="genBtn" onclick="generate()">СОЗДАТЬ 🎨</button>
+<button class="big-btn" id="genBtn">СОЗДАТЬ 🎨</button>
 
-<div class="progress-bar-wrap" id="progressWrap">
-  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
-  <div class="progress-text" id="progressText"></div>
+<div class="bar-wrap" id="barWrap">
+  <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+  <div class="bar-text" id="barText"></div>
 </div>
 <div class="status" id="status"></div>
 <div class="preview" id="preview"></div>
 
+</div><!-- /main -->
+
 <script>
-// API key - Figma clientStorage üzerinden (localStorage değil!)
-let GEMINI_KEY = '';
+// ============================================================
+// STATE
+// ============================================================
+let KEY = '';
+let model = 'nanopro';
+let vars = 3;
+let refB64 = null;
 
-function checkApiKey() {
-  if (!GEMINI_KEY || GEMINI_KEY.length < 10) {
-    document.getElementById('setupPanel').style.display = 'block';
-    document.getElementById('mainPanel').style.display = 'none';
-    return false;
-  }
-  document.getElementById('setupPanel').style.display = 'none';
-  document.getElementById('mainPanel').style.display = 'block';
-  return true;
-}
-
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key) return;
-  GEMINI_KEY = key;
-  if (document.getElementById('saveKeyCheck').checked) {
-    // Figma clientStorage'a kaydet (code.js üzerinden)
-    parent.postMessage({ pluginMessage: { type: 'save-key', key: key } }, '*');
-  }
-  checkApiKey();
-}
-
-let selectedModel = 'nanopro';
-let refImageBase64 = null;
-let variationCount = 3;
-
-function selectCount(btn) {
-  document.querySelectorAll('[data-count]').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  variationCount = parseInt(btn.dataset.count);
-}
-
-const translations = {
-  ru: { model: 'Модель', prompt: 'Описание изображения', size: 'Размеры', custom: 'Свой размер', ref: '📎 Референс (необязательно)', placeholder: 'Например: красивая девушка в парижском кафе', btn: 'СОЗДАТЬ 🎨', generating: '⏳ Создаю...', placing: '📐 Размещаю...', done: '✅ Готово!', error: '❌ Ошибка', selected: 'Выбрано', selectAll: 'Все', deselectAll: 'Снять', of: 'из', processing: 'Обработка', refAnalyze: '🔍 Анализ референса...', refDrop: 'Перетащите или нажмите' },
-  en: { model: 'Model', prompt: 'Description', size: 'Sizes', custom: 'Custom size', ref: '📎 Reference (optional)', placeholder: 'Example: beautiful girl in a Paris cafe', btn: 'GENERATE 🎨', generating: '⏳ Generating...', placing: '📐 Placing...', done: '✅ Done!', error: '❌ Error', selected: 'Selected', selectAll: 'All', deselectAll: 'None', of: 'of', processing: 'Processing', refAnalyze: '🔍 Analyzing reference...', refDrop: 'Drag or click' },
-  tr: { model: 'Model', prompt: 'Açıklama', size: 'Boyutlar', custom: 'Özel boyut', ref: '📎 Referans (isteğe bağlı)', placeholder: 'Örnek: Paris kafesinde güzel bir kız', btn: 'OLUŞTUR 🎨', generating: '⏳ Üretiliyor...', placing: '📐 Yerleştiriliyor...', done: '✅ Tamam!', error: '❌ Hata', selected: 'Seçili', selectAll: 'Hepsi', deselectAll: 'Kaldır', of: '/', processing: 'İşleniyor', refAnalyze: '🔍 Referans analiz ediliyor...', refDrop: 'Sürükle veya tıkla' }
+const GEMINI_MODELS = {
+  nano: 'gemini-3.1-flash-image-preview',
+  nanopro: 'gemini-3-pro-image-preview',
+  imagen: 'imagen-4.0-ultra-generate-001'
 };
-let lang = 'ru';
 
-function setLang(l) {
-  lang = l;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector(`.lang-btn[onclick="setLang('${l}')"]`).classList.add('active');
-  document.getElementById('lbl-model').textContent = translations[l].model;
-  document.getElementById('lbl-prompt').textContent = translations[l].prompt;
-  document.getElementById('lbl-size').textContent = translations[l].size;
-  document.getElementById('lbl-custom').textContent = translations[l].custom;
-  document.getElementById('lbl-ref').textContent = translations[l].ref;
-  document.getElementById('prompt').placeholder = translations[l].placeholder;
-  document.getElementById('genBtn').textContent = translations[l].btn;
-  updateHint();
-}
+const varStyles = [
+  '',
+  ', different angle, different pose, different lighting',
+  ', completely different person, different face, different ethnicity, different scene',
+  ', wide shot, different background, different color palette, dramatic mood'
+];
 
-function selectModel(btn) {
-  document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  selectedModel = btn.dataset.model;
-}
-
-function toggleSize(btn) { btn.classList.toggle('active'); updateHint(); }
-
-function toggleAll() {
-  const btns = document.querySelectorAll('.size-btn');
-  const allActive = [...btns].every(b => b.classList.contains('active'));
-  btns.forEach(b => allActive ? b.classList.remove('active') : b.classList.add('active'));
-  updateHint();
-}
-
-function updateHint() {
-  const count = document.querySelectorAll('.size-btn.active').length;
-  document.getElementById('hint').textContent = `${translations[lang].selected}: ${count}`;
-}
-
-function addCustomSize() {
-  const w = parseInt(document.getElementById('newW').value);
-  const h = parseInt(document.getElementById('newH').value);
-  if (!w || !h || w < 10 || h < 10) return;
-  const existing = document.querySelectorAll('.size-btn');
-  for (const btn of existing) { if (btn.dataset.w == w && btn.dataset.h == h) { btn.classList.add('active'); updateHint(); return; } }
-  const btn = document.createElement('button');
-  btn.className = 'size-btn active custom';
-  btn.dataset.w = w; btn.dataset.h = h;
-  btn.innerHTML = `${w}×${h}<span class="remove" onclick="event.stopPropagation();this.parentElement.remove();updateHint();">✕</span>`;
-  btn.onclick = function() { toggleSize(this); };
-  document.getElementById('sizes').appendChild(btn);
-  document.getElementById('newW').value = ''; document.getElementById('newH').value = '';
-  updateHint();
-}
-
-// Referans resim
-function handleRefImage(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    refImageBase64 = e.target.result.split(',')[1];
-    const drop = document.getElementById('refDrop');
-    drop.classList.add('has-image');
-    drop.innerHTML = `<img src="${e.target.result}"><button class="ref-remove" onclick="event.stopPropagation();removeRef()">✕</button>`;
-  };
-  reader.readAsDataURL(file);
-}
-
-function removeRef() {
-  refImageBase64 = null;
-  const drop = document.getElementById('refDrop');
-  drop.classList.remove('has-image');
-  drop.innerHTML = `<span class="ref-icon">📎</span><span class="ref-text">${translations[lang].refDrop}</span>`;
-  document.getElementById('refInput').value = '';
-}
-
-// Drag & drop
-document.addEventListener('DOMContentLoaded', () => {
-  const drop = document.getElementById('refDrop');
-  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.borderColor = '#5AC40A'; });
-  drop.addEventListener('dragleave', () => { drop.style.borderColor = '#444'; });
-  drop.addEventListener('drop', (e) => {
-    e.preventDefault(); drop.style.borderColor = '#444';
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const dt = new DataTransfer(); dt.items.add(file);
-      document.getElementById('refInput').files = dt.files;
-      handleRefImage(document.getElementById('refInput'));
-    }
-  });
+// ============================================================
+// SETUP
+// ============================================================
+document.getElementById('startBtn').addEventListener('click', () => {
+  const k = document.getElementById('keyInput').value.trim();
+  if (!k || k.length < 10) return;
+  KEY = k;
+  if (document.getElementById('saveCheck').checked) {
+    parent.postMessage({ pluginMessage: { type: 'save-key', key: k } }, '*');
+  }
+  showMain();
 });
 
-// Referans analiz (GPT-4o veya Gemini)
-async function analyzeReference(userPrompt) {
-  if (!refImageBase64) return userPrompt;
-  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [
-        { text: `Analyze this reference image's visual style, composition, lighting, colors, and mood. Combine it with the user's request to write ONE detailed image generation prompt in English. User request: "${userPrompt}". Write ONLY the prompt, photorealistic, 8k quality. Keep the reference image's artistic style.` },
-        { inlineData: { mimeType: 'image/jpeg', data: refImageBase64 } }
-      ]}]
-    })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.candidates[0].content.parts[0].text.trim();
+function showMain() {
+  document.getElementById('setup').classList.add('hidden');
+  document.getElementById('main').classList.remove('hidden');
 }
 
-function setStatus(msg, type = '') {
-  document.getElementById('status').textContent = msg;
-  document.getElementById('status').className = 'status ' + type;
-}
-
-function showProgress(pct, text) {
-  const wrap = document.getElementById('progressWrap');
-  const fill = document.getElementById('progressFill');
-  wrap.classList.add('active');
-  fill.style.width = pct + '%';
-  document.getElementById('progressText').textContent = text || '';
-  if (pct < 100) fill.classList.add('generating'); else fill.classList.remove('generating');
-}
-
-function hideProgress() {
-  document.getElementById('progressWrap').classList.remove('active');
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('progressFill').classList.remove('generating');
-}
-
-function getSelectedSizes() {
-  return [...document.querySelectorAll('.size-btn.active')].map(b => ({ w: parseInt(b.dataset.w), h: parseInt(b.dataset.h) }));
+function showSetup() {
+  document.getElementById('setup').classList.remove('hidden');
+  document.getElementById('main').classList.add('hidden');
 }
 
 // ============================================================
-// ANA ÜRETIM FONKSİYONU
+// LANG
 // ============================================================
-async function generate() {
+document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-lang]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+}));
+
+// ============================================================
+// MODEL
+// ============================================================
+document.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-m]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  model = b.dataset.m;
+}));
+
+// ============================================================
+// VARIATIONS
+// ============================================================
+document.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-v]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  vars = parseInt(b.dataset.v);
+}));
+
+// ============================================================
+// SIZES
+// ============================================================
+document.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => { b.classList.toggle('on'); updateHint(); }));
+document.getElementById('selAll').addEventListener('click', () => {
+  const all = document.querySelectorAll('[data-s]');
+  const allOn = [...all].every(b => b.classList.contains('on'));
+  all.forEach(b => allOn ? b.classList.remove('on') : b.classList.add('on'));
+  updateHint();
+});
+function updateHint() { document.getElementById('sizeHint').textContent = document.querySelectorAll('[data-s].on').length; }
+
+document.getElementById('addSize').addEventListener('click', () => {
+  const w = parseInt(document.getElementById('cw').value), h = parseInt(document.getElementById('ch').value);
+  if (!w || !h) return;
+  const b = document.createElement('div');
+  b.className = 'btn on custom'; b.dataset.s = w+','+h;
+  b.innerHTML = w+'×'+h+'<span class="x">✕</span>';
+  b.addEventListener('click', (e) => { if (e.target.classList.contains('x')) { b.remove(); updateHint(); } else b.classList.toggle('on'); updateHint(); });
+  document.getElementById('sizes').appendChild(b);
+  document.getElementById('cw').value = ''; document.getElementById('ch').value = '';
+  updateHint();
+});
+
+// ============================================================
+// REFERENCE
+// ============================================================
+const refDrop = document.getElementById('refDrop');
+const refFile = document.getElementById('refFile');
+refDrop.addEventListener('click', () => refFile.click());
+refDrop.addEventListener('dragover', e => { e.preventDefault(); refDrop.style.borderColor='#5AC40A'; });
+refDrop.addEventListener('dragleave', () => { refDrop.style.borderColor='#444'; });
+refDrop.addEventListener('drop', e => { e.preventDefault(); refDrop.style.borderColor='#444'; loadRef(e.dataTransfer.files[0]); });
+refFile.addEventListener('change', () => loadRef(refFile.files[0]));
+
+function loadRef(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    refB64 = e.target.result.split(',')[1];
+    refDrop.classList.add('has');
+    refDrop.innerHTML = '<img src="'+e.target.result+'"><button class="rm" onclick="clearRef(event)">✕</button>';
+  };
+  r.readAsDataURL(file);
+}
+function clearRef(e) { e.stopPropagation(); refB64=null; refDrop.classList.remove('has'); refDrop.innerHTML='<span style="font-size:20px">📎</span><span style="font-size:11px;color:#666">Перетащите</span>'; refFile.value=''; }
+
+// ============================================================
+// PROGRESS
+// ============================================================
+function showBar(pct, txt) {
+  const w = document.getElementById('barWrap'); w.classList.add('on');
+  const f = document.getElementById('barFill'); f.style.width=pct+'%';
+  if(pct<100) f.classList.add('pulse'); else f.classList.remove('pulse');
+  document.getElementById('barText').textContent = txt||'';
+}
+function hideBar() { document.getElementById('barWrap').classList.remove('on'); document.getElementById('barFill').style.width='0%'; }
+function setStatus(t,c) { const s=document.getElementById('status'); s.textContent=t; s.className='status '+(c||''); }
+
+// ============================================================
+// TIMEOUT FETCH
+// ============================================================
+function tFetch(url, opt, ms=300000) {
+  return Promise.race([fetch(url,opt), new Promise((_,r)=>setTimeout(()=>r(new Error('⏰ Timeout')),ms))]);
+}
+
+// ============================================================
+// GENERATE
+// ============================================================
+document.getElementById('genBtn').addEventListener('click', async () => {
   const prompt = document.getElementById('prompt').value.trim();
   if (!prompt) return;
-  const sizes = getSelectedSizes();
-  if (!sizes.length) { setStatus(translations[lang].error + ': size', 'error'); return; }
+  if (!KEY) { showSetup(); return; }
+
+  const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
+  if (!selSizes.length) { setStatus('Выберите размер','err'); return; }
 
   const btn = document.getElementById('genBtn');
   btn.disabled = true;
   document.getElementById('preview').innerHTML = '';
+  setStatus('');
 
+  // Ref analiz
   let finalPrompt = prompt;
-
-  // Referans analiz
-  if (refImageBase64) {
-    showProgress(3, translations[lang].refAnalyze);
-    try { finalPrompt = await analyzeReference(prompt); } catch (e) { console.warn('Ref hata:', e); }
-    showProgress(15, '✅');
+  if (refB64) {
+    showBar(5, '🔍 Референс...');
+    try {
+      const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+KEY, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{parts:[
+          {text:'Analyze this reference image style. Combine with: "'+prompt+'". Write ONE detailed image generation prompt in English. ONLY the prompt, photorealistic 8k.'},
+          {inlineData:{mimeType:'image/jpeg',data:refB64}}
+        ]}]})
+      });
+      const d = await r.json();
+      if (d.candidates) finalPrompt = d.candidates[0].content.parts[0].text.trim();
+    } catch(e) {}
+    showBar(12, '✅ Референс');
   }
 
-  // AI üretim - varyasyon sayısı kadar
-  const totalSteps = variationCount * sizes.length;
-  let currentStep = 0;
-  const startPct = refImageBase64 ? 18 : 5;
+  // Üret
+  const images = [];
+  for (let v = 0; v < vars; v++) {
+    const vStart = Date.now();
+    const timer = setInterval(() => {
+      const sec = Math.floor((Date.now()-vStart)/1000);
+      const msgs = ['🔄','🧠 AI...','🎨','🖌','✨','📦','⏳'];
+      showBar(15+(v/vars)*50, msgs[Math.min(Math.floor(sec/8),msgs.length-1)]+' '+( v+1)+'/'+vars+' — '+sec+'с');
+    }, 1000);
 
-  setStatus(translations[lang].generating);
-
-  try {
-    const allImages = [];
-
-    // Her varyasyon için prompt'u değiştir - farklı sonuçlar çıksın
-    const variationStyles = [
-      '',
-      ', different angle, different pose, different lighting, alternative composition',
-      ', completely different person, different face, different ethnicity, different body type, different scene',
-      ', wide shot, different background, different color palette, dramatic contrast, different mood',
-    ];
-
-    for (let v = 0; v < variationCount; v++) {
-      const vStart = Date.now();
-      const statusMessages = [
-        '🔄 Запрос отправлен...',
-        '🧠 AI думает...',
-        '🎨 Рисует...',
-        '🖌 Добавляет детали...',
-        '✨ Финальные штрихи...',
-        '📦 Почти готово...',
-        '⏳ Ещё немного...',
-      ];
-      let statusIdx = 0;
-      const timerInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - vStart) / 1000);
-        if (elapsed > 0 && elapsed % 8 === 0 && statusIdx < statusMessages.length - 1) statusIdx++;
-        const msg = statusMessages[statusIdx];
-        showProgress(startPct + (v / variationCount) * 55, `${msg} ${v + 1}/${variationCount} — ${elapsed}с`);
-      }, 1000);
-      showProgress(startPct + (v / variationCount) * 55, `🔄 ${v + 1}/${variationCount} — 0с`);
-
-      const varPrompt = finalPrompt + variationStyles[v];
-
-      let imageBytes;
-      try {
-        if (selectedModel === 'nano') {
-          imageBytes = await generateNanoBanana(varPrompt, 'gemini-3.1-flash-image-preview');
-        } else if (selectedModel === 'nanopro') {
-          imageBytes = await generateNanoBanana(varPrompt, 'gemini-3-pro-image-preview');
-        } else if (selectedModel === 'imagen4ultra') {
-          imageBytes = await generateImagen(varPrompt, 'imagen-4.0-ultra-generate-001');
-        }
-        clearInterval(timerInterval);
-        const elapsed = Math.floor((Date.now() - vStart) / 1000);
-        showProgress(startPct + ((v + 1) / variationCount) * 55, `✅ ${v + 1}/${variationCount} готово за ${elapsed}с`);
-        allImages.push(imageBytes);
-      } catch (varErr) {
-        clearInterval(timerInterval);
-        // Bir varyasyon fail olursa diğerlerine devam et
-        showProgress(startPct + ((v + 1) / variationCount) * 55, `❌ ${v + 1}/${variationCount} — ${varErr.message.substring(0, 40)}`);
-        await new Promise(r => setTimeout(r, 1500));
-        continue;
+    const vPrompt = finalPrompt + varStyles[v];
+    try {
+      let bytes;
+      if (model === 'imagen') {
+        const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-ultra-generate-001:predict?key='+KEY, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({instances:[{prompt:vPrompt}],parameters:{sampleCount:1}})
+        });
+        const d = await r.json();
+        if (d.error) throw new Error(d.error.message);
+        const b64 = d.predictions[0].bytesBase64Encoded;
+        const bin = atob(b64); bytes = new Uint8Array(bin.length);
+        for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+      } else {
+        const mName = GEMINI_MODELS[model];
+        const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/'+mName+':generateContent?key='+KEY, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({contents:[{parts:[{text:'Generate an image: '+vPrompt}]}],generationConfig:{responseModalities:['TEXT','IMAGE']}})
+        });
+        const d = await r.json();
+        if (d.error) throw new Error(d.error.message);
+        let b64; for(const p of d.candidates[0].content.parts) { if(p.inlineData) { b64=p.inlineData.data; break; } }
+        if (!b64) throw new Error('No image');
+        const bin = atob(b64); bytes = new Uint8Array(bin.length);
+        for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
       }
-    }
-
-    showProgress(65, `✅ ${variationCount} variant`);
-
-    // Preview - son görseli göster
-    const blob = new Blob([allImages[allImages.length - 1]], { type: 'image/png' });
-    document.getElementById('preview').innerHTML = `<img src="${URL.createObjectURL(blob)}">`;
-
-    // Figma'ya yerleştir - her varyasyon x her boyut
-    setStatus(translations[lang].placing);
-    const placePct = 30 / (allImages.length * sizes.length);
-    let placeIdx = 0;
-
-    for (let v = 0; v < allImages.length; v++) {
-      for (let i = 0; i < sizes.length; i++) {
-        const s = sizes[i];
-        placeIdx++;
-        showProgress(Math.round(65 + placeIdx * placePct), `📐 V${v + 1} ${s.w}×${s.h}`);
-        const bannerName = document.getElementById('bannerName').value.trim() || 'banner';
-        const num = v * sizes.length + i + 1;
-        parent.postMessage({ pluginMessage: { type: 'place-image', imageBytes: Array.from(allImages[v]), width: s.w, height: s.h, name: `${bannerName} ${num} (${s.w}×${s.h})` } }, '*');
-        await new Promise(r => setTimeout(r, 400));
-      }
-    }
-
-    const total = allImages.length * sizes.length;
-    showProgress(100, `✅ ${variationCount} variant × ${sizes.length} size = ${total} banner!`);
-    setStatus(`${translations[lang].done} (${total})`, 'success');
-    setTimeout(hideProgress, 3000);
-
-  } catch (err) {
-    clearInterval(genInterval);
-    hideProgress();
-    setStatus(`${translations[lang].error}: ${err.message}`, 'error');
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-// ============================================================
-// NANO BANANA 2 (Gemini) — ÜCRETSİZ
-// ============================================================
-function fetchWithTimeout(url, options, timeoutMs = 300000) {
-  return Promise.race([
-    fetch(url, options),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('⏰ Timeout (5 мин) — попробуйте ещё раз или смените модель')), timeoutMs))
-  ]);
-}
-
-async function generateNanoBanana(prompt, model = 'gemini-3.1-flash-image-preview') {
-  const res = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + GEMINI_KEY, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: 'Generate an image: ' + prompt }] }],
-      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
-    })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-
-  const parts = data.candidates[0].content.parts;
-  for (const p of parts) {
-    if (p.inlineData) {
-      const binary = atob(p.inlineData.data);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      return bytes;
+      clearInterval(timer);
+      const sec = Math.floor((Date.now()-vStart)/1000);
+      showBar(15+((v+1)/vars)*50, '✅ '+(v+1)+'/'+vars+' — '+sec+'с');
+      images.push(bytes);
+    } catch(e) {
+      clearInterval(timer);
+      showBar(15+((v+1)/vars)*50, '❌ '+(v+1)+'/'+vars+' — '+(e.message||'').substring(0,40));
+      await new Promise(r=>setTimeout(r,1500));
     }
   }
-  throw new Error('No image in response');
-}
 
-// ============================================================
-// IMAGEN 4 ULTRA (Google) — ÜCRETSİZ
-// ============================================================
-async function generateImagen(prompt, model = 'imagen-4.0-ultra-generate-001') {
-  const res = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':predict?key=' + GEMINI_KEY, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      instances: [{ prompt: prompt }],
-      parameters: { sampleCount: 1 }
-    })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  if (!data.predictions?.[0]?.bytesBase64Encoded) throw new Error('No image');
+  if (!images.length) { setStatus('❌ Все варианты не удались','err'); hideBar(); btn.disabled=false; return; }
 
-  const binary = atob(data.predictions[0].bytesBase64Encoded);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
+  // Preview
+  const blob = new Blob([images[images.length-1]],{type:'image/png'});
+  document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'">';
 
-// ============================================================
-// GPT-IMAGE-1.5 (OpenAI)
-// ============================================================
-async function generateGPTImage(prompt) {
-  const sizes = getSelectedSizes();
-  const maxW = Math.max(...sizes.map(s => s.w));
-  const maxH = Math.max(...sizes.map(s => s.h));
-  let apiSize = '1024x1536';
-  if (maxW > maxH) apiSize = '1536x1024';
-  else if (maxW === maxH) apiSize = '1024x1024';
-
-  const res = await fetch('https://api.openai.com/v1/images/generations', {
-    method: 'POST', headers: { 'Authorization': `Bearer ${OPENAI_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-image-1.5', prompt, n: 1, size: apiSize, quality: 'high' })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  if (!data.data?.[0]) throw new Error('No image');
-
-  const d = data.data[0];
-  if (d.b64_json) return Uint8Array.from(atob(d.b64_json), c => c.charCodeAt(0));
-  if (d.url) {
-    const r = await fetch(d.url);
-    return new Uint8Array(await (await r.blob()).arrayBuffer());
+  // Figma'ya yerleştir
+  const bname = document.getElementById('bname').value.trim() || 'banner';
+  let n = 0;
+  for (let v=0; v<images.length; v++) {
+    for (let i=0; i<selSizes.length; i++) {
+      n++;
+      const s = selSizes[i];
+      showBar(70+(n/(images.length*selSizes.length))*30, '📐 '+n+'/'+(images.length*selSizes.length)+' — '+s.w+'×'+s.h);
+      parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(images[v]),width:s.w,height:s.h,name:bname+' '+n+' ('+s.w+'×'+s.h+')'}}, '*');
+      await new Promise(r=>setTimeout(r,400));
+    }
   }
-  throw new Error('No image data');
-}
 
-// Figma'dan mesaj al
-window.onmessage = (event) => {
-  const msg = event.data.pluginMessage;
+  showBar(100, '✅ '+n+' banner!');
+  setStatus('✅ '+ n + ' banner','ok');
+  setTimeout(hideBar, 3000);
+  btn.disabled = false;
+});
+
+// ============================================================
+// FIGMA MESSAGES
+// ============================================================
+window.onmessage = (e) => {
+  const msg = e.data.pluginMessage;
   if (!msg) return;
-
-  if (msg.type === 'saved-key') {
-    // Başlangıçta Figma'dan kayıtlı key geldi
+  if (msg.type === 'init') {
     if (msg.key && msg.key.length > 10) {
-      GEMINI_KEY = msg.key;
+      KEY = msg.key;
+      showMain();
+    } else {
+      showSetup();
     }
-    checkApiKey();
-  } else if (msg.type === 'key-saved') {
-    // Key başarıyla kaydedildi
-  } else if (msg.type === 'key-deleted') {
-    GEMINI_KEY = '';
-    checkApiKey();
-  } else if (msg.type === 'error') {
-    setStatus(`${translations[lang].error}: ${msg.message}`, 'error');
   }
+  if (msg.type === 'error') setStatus('❌ '+msg.message, 'err');
 };
-
-// Başlangıçta setup göster, Figma'dan key gelince otomatik geçecek
-document.getElementById('setupPanel').style.display = 'block';
-document.getElementById('mainPanel').style.display = 'none';
 </script>
-
-</div><!-- /mainPanel -->
 
 </body>
 </html>
