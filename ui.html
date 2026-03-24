@@ -477,7 +477,7 @@ async function handleAIResize(data) {
 
     // Aspect ratio belirle
     const ratio = s.w > s.h ? 'landscape' : s.w < s.h ? 'portrait' : 'square';
-    const prompt = 'Take this image and adapt it to a ' + ratio + ' ' + s.w + 'x' + s.h + ' format. Keep the main character/subject exactly as is. Extend the background naturally to fill the new dimensions. Do not crop the character. The character must be fully visible.';
+    const prompt = 'STRICT RULES: Do NOT change the character, face, clothing, pose, or any visible part of the original image. Only extend the canvas to ' + s.w + 'x' + s.h + ' ' + ratio + ' format. Fill the new empty areas with a simple solid color or gradient that matches the existing background colors. Keep it minimal - just extend the background colors smoothly. The original image content must remain 100% identical and unchanged.';
 
     try {
       const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
