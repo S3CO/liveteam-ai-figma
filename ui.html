@@ -150,6 +150,11 @@
   </div>
 </div>
 
+<div class="input-group">
+  <label id="lbl-name">Название баннера</label>
+  <input type="text" id="bannerName" placeholder="Например: баннер с девушкой" style="width:100%; padding:10px; background:#2c2c2c; border:1px solid #444; border-radius:6px; color:#fff; font-size:13px; font-family:inherit;">
+</div>
+
 <div class="input-group ref-area">
   <label id="lbl-ref">📎 Референс (необязательно)</label>
   <div class="ref-drop" id="refDrop" onclick="document.getElementById('refInput').click()">
@@ -433,7 +438,9 @@ async function generate() {
         const s = sizes[i];
         placeIdx++;
         showProgress(Math.round(65 + placeIdx * placePct), `📐 V${v + 1} ${s.w}×${s.h}`);
-        parent.postMessage({ pluginMessage: { type: 'place-image', imageBytes: Array.from(allImages[v]), width: s.w, height: s.h, name: `${prompt.substring(0, 30)} V${v + 1} (${s.w}×${s.h})` } }, '*');
+        const bannerName = document.getElementById('bannerName').value.trim() || prompt.substring(0, 30);
+        const vLabel = variationCount > 1 ? ` V${v + 1}` : '';
+        parent.postMessage({ pluginMessage: { type: 'place-image', imageBytes: Array.from(allImages[v]), width: s.w, height: s.h, name: `${bannerName}${vLabel} (${s.w}×${s.h})` } }, '*');
         await new Promise(r => setTimeout(r, 400));
       }
     }
