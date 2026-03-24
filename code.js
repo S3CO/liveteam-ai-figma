@@ -56,7 +56,12 @@ figma.ui.onmessage = async (msg) => {
         frame.resize(s.w, s.h);
         frame.x = getNextX();
         frame.y = getBaseY();
-        frame.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: image.hash }];
+        // Oranlar benzer ise FILL (kırpma), çok farklıysa FIT (tam sığdır)
+        const srcRatio = source.width / source.height;
+        const tgtRatio = s.w / s.h;
+        const ratioDiff = Math.abs(srcRatio - tgtRatio) / srcRatio;
+        const mode = ratioDiff < 0.3 ? 'FILL' : 'FIT';
+        frame.fills = [{ type: 'IMAGE', scaleMode: mode, imageHash: image.hash }];
         frame.cornerRadius = 8;
       }
 
