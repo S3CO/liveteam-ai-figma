@@ -36,12 +36,13 @@ figma.ui.onmessage = async (msg) => {
   if (msg.type === 'resize-selected') {
     try {
       const sel = figma.currentPage.selection;
-      if (!sel.length || sel[0].type !== 'FRAME') {
-        figma.ui.postMessage({ type: 'error', message: 'Сначала выберите фрейм / Select a frame first' });
+      const allowed = ['FRAME', 'COMPONENT', 'INSTANCE', 'RECTANGLE', 'GROUP'];
+      if (!sel.length || !allowed.includes(sel[0].type)) {
+        figma.ui.postMessage({ type: 'error', message: 'Выберите фрейм или компонент / Select a frame or component' });
         return;
       }
       const source = sel[0];
-      const fills = source.fills;
+      const fills = source.fills || [];
       const baseName = source.name.replace(/\s*\(\d+×\d+\)/, '').replace(/\s*\d+$/, '').trim() || 'banner';
       const sizes = msg.sizes; // [{w,h}]
 
