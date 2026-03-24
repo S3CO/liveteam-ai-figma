@@ -46,16 +46,31 @@ figma.ui.onmessage = async (msg) => {
 
       // Görseli export et
       const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 2 } });
+      const image = figma.createImage(exportBytes);
 
-      // Export edilen bytes'ı UI'a gönder - AI ile resize yapacak
-      figma.ui.postMessage({
-        type: 'ai-resize',
-        imageBytes: Array.from(exportBytes),
-        baseName: baseName,
-        sizes: sizes,
-        sourceW: Math.round(source.width),
-        sourceH: Math.round(source.height)
-      });
+      for (let i = 0; i < sizes.length; i++) {
+        const s = sizes[i];
+        if (s.w === Math.round(source.width) && s.h === Math.round(source.height)) continue;
+
+        const frame = figma.createFrame();
+        frame.name = baseName + ' (' + s.w + '×' + s.h + ')';
+        frame.resize(s.w, s.h);
+        frame.x = getNextX();
+        frame.y = getBaseY();
+
+        // Koyu arka plan + FIT (karakter kesilmez)
+        frame.fills = [
+          { type: 'SOLID', color: { r: 0.04, g: 0.06, b: 0.1 }, opacity: 1 },
+          { type: 'IMAGE', scaleMode: 'FIT', imageHash: image.hash }
+        ];
+        frame.cornerRadius = 8;
+      }
+
+      const all = figma.currentPage.children.filter(n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/));
+      figma.currentPage.selection = all;
+      figma.viewport.scrollAndZoomIntoView(all);
+      figma.notify('✅ Resized to ' + sizes.length + ' sizes');
+      figma.ui.postMessage({ type: 'resize-done', count: sizes.length });
     } catch (e) {
       figma.ui.postMessage({ type: 'error', message: e.message });
     }
