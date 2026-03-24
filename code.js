@@ -32,6 +32,43 @@ figma.ui.onmessage = async (msg) => {
     await figma.clientStorage.deleteAsync('liveteam_key');
     return;
   }
+  // Seçili frame'i resize et
+  if (msg.type === 'resize-selected') {
+    try {
+      const sel = figma.currentPage.selection;
+      if (!sel.length || sel[0].type !== 'FRAME') {
+        figma.ui.postMessage({ type: 'error', message: 'Сначала выберите фрейм / Select a frame first' });
+        return;
+      }
+      const source = sel[0];
+      const fills = source.fills;
+      const baseName = source.name.replace(/\s*\(\d+×\d+\)/, '').replace(/\s*\d+$/, '').trim() || 'banner';
+      const sizes = msg.sizes; // [{w,h}]
+
+      for (let i = 0; i < sizes.length; i++) {
+        const s = sizes[i];
+        // Aynı boyutsa atla
+        if (s.w === Math.round(source.width) && s.h === Math.round(source.height)) continue;
+        const frame = figma.createFrame();
+        frame.name = baseName + ' (' + s.w + '×' + s.h + ')';
+        frame.resize(s.w, s.h);
+        frame.x = getNextX();
+        frame.y = getBaseY();
+        frame.fills = JSON.parse(JSON.stringify(fills));
+        frame.cornerRadius = 8;
+      }
+
+      const all = figma.currentPage.children.filter(n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/));
+      figma.currentPage.selection = all;
+      figma.viewport.scrollAndZoomIntoView(all);
+      figma.notify('✅ Resized to ' + sizes.length + ' sizes');
+      figma.ui.postMessage({ type: 'resize-done', count: sizes.length });
+    } catch (e) {
+      figma.ui.postMessage({ type: 'error', message: e.message });
+    }
+    return;
+  }
+
   if (msg.type === 'place-image') {
     try {
       const { imageBytes, width, height, name } = msg;

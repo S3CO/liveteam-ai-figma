@@ -152,7 +152,10 @@
   </div>
 </div>
 
-<button class="big-btn" id="genBtn">СОЗДАТЬ 🎨</button>
+<div class="row" style="gap:8px">
+  <button class="big-btn" id="genBtn" style="flex:3">СОЗДАТЬ 🎨</button>
+  <button class="big-btn" id="resizeBtn" style="flex:1;background:#2c2c2c;color:#5AC40A;border:2px solid #5AC40A;font-size:12px;padding:8px">📐 RESIZE</button>
+</div>
 
 <div class="bar-wrap" id="barWrap">
   <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
@@ -428,6 +431,16 @@ document.getElementById('genBtn').addEventListener('click', async () => {
 });
 
 // ============================================================
+// RESIZE - seçili frame'i farklı boyutlarda kopyala
+// ============================================================
+document.getElementById('resizeBtn').addEventListener('click', () => {
+  const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
+  if (!selSizes.length) { setStatus('Выберите размеры / Select sizes','err'); return; }
+  parent.postMessage({ pluginMessage: { type: 'resize-selected', sizes: selSizes } }, '*');
+  setStatus('📐 Resizing...','');
+});
+
+// ============================================================
 // FIGMA MESSAGES
 // ============================================================
 window.onmessage = (e) => {
@@ -437,6 +450,7 @@ window.onmessage = (e) => {
     // Her zaman boş setup göster
     showSetup();
   }
+  if (msg.type === 'resize-done') setStatus('✅ Resized to '+msg.count+' sizes', 'ok');
   if (msg.type === 'error') setStatus('❌ '+msg.message, 'err');
 };
 </script>
