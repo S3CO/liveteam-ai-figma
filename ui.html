@@ -108,7 +108,7 @@
 
 <div class="header">
   <h1>🎨 Live <span>Team</span></h1>
-  <p>AI Image → Figma <span style="font-size:9px; cursor:pointer; color:#666; margin-left:8px;" onclick="resetApiKey()">⚙️</span></p>
+  <p>AI Image → Figma <span id="keyStatus" style="font-size:9px; color:#666; margin-left:4px;"></span> <span style="font-size:9px; cursor:pointer; color:#666; margin-left:4px;" onclick="resetApiKey()">⚙️ сменить ключ</span></p>
 </div>
 
 <div class="lang">
@@ -191,13 +191,14 @@
 let GEMINI_KEY = localStorage.getItem('liveteam_gemini_key') || '';
 
 function checkApiKey() {
-  if (!GEMINI_KEY) {
+  if (!GEMINI_KEY || GEMINI_KEY.length < 10) {
     document.getElementById('setupPanel').style.display = 'block';
     document.getElementById('mainPanel').style.display = 'none';
     return false;
   }
   document.getElementById('setupPanel').style.display = 'none';
   document.getElementById('mainPanel').style.display = 'block';
+  document.getElementById('keyStatus').textContent = '🔑 ' + GEMINI_KEY.substring(0, 8) + '...';
   return true;
 }
 
