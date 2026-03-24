@@ -489,10 +489,10 @@ async function generate() {
 // ============================================================
 // NANO BANANA 2 (Gemini) — ÜCRETSİZ
 // ============================================================
-function fetchWithTimeout(url, options, timeoutMs = 120000) {
+function fetchWithTimeout(url, options, timeoutMs = 300000) {
   return Promise.race([
     fetch(url, options),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('⏰ Timeout (2 мин) — попробуйте ещё раз или смените модель')), timeoutMs))
+    new Promise((_, reject) => setTimeout(() => reject(new Error('⏰ Timeout (5 мин) — попробуйте ещё раз или смените модель')), timeoutMs))
   ]);
 }
 
