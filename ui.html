@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #1e1e1e; color: #fff; padding: 16px; overflow-y: auto; }
+
+  .header { text-align: center; margin-bottom: 14px; }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header h1 span { color: #5AC40A; }
+  .header p { font-size: 11px; color: #888; margin-top: 4px; }
+
+  .input-group { margin-bottom: 10px; }
+  .input-group label { display: block; font-size: 11px; color: #aaa; margin-bottom: 4px; font-weight: 600; }
+
+  textarea { width: 100%; height: 60px; background: #2c2c2c; border: 1px solid #444; border-radius: 6px;
+    color: #fff; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; }
+  textarea:focus { border-color: #5AC40A; outline: none; }
+  textarea::placeholder { color: #666; }
+
+  /* Model seçimi */
+  .models { display: flex; gap: 5px; margin-bottom: 10px; }
+  .model-btn { flex: 1; padding: 8px 6px; background: #2c2c2c; border: 1px solid #444; border-radius: 6px;
+    color: #ccc; font-size: 10px; cursor: pointer; font-weight: 600; text-align: center; }
+  .model-btn:hover { border-color: #5AC40A; }
+  .model-btn.active { background: #5AC40A; color: #1e1e1e; border-color: #5AC40A; }
+  .model-btn .model-name { display: block; font-weight: 800; font-size: 11px; }
+  .model-btn .model-info { display: block; font-size: 9px; opacity: 0.7; margin-top: 2px; }
+
+  /* Multi-select sizes */
+  .sizes { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+  .size-btn { padding: 5px 10px; background: #2c2c2c; border: 1px solid #444; border-radius: 6px;
+    color: #ccc; font-size: 10px; cursor: pointer; font-weight: 600; user-select: none; }
+  .size-btn:hover { border-color: #5AC40A; color: #5AC40A; }
+  .size-btn.active { background: #5AC40A; color: #1e1e1e; border-color: #5AC40A; }
+  .size-btn .remove { display: none; margin-left: 4px; font-size: 9px; }
+  .size-btn.custom .remove { display: inline; cursor: pointer; }
+
+  .hint { font-size: 10px; color: #666; margin-bottom: 8px; }
+
+  .add-size { display: flex; gap: 5px; margin-bottom: 10px; align-items: center; }
+  .add-size input { width: 70px; background: #2c2c2c; border: 1px solid #444; border-radius: 6px;
+    color: #fff; padding: 6px; font-size: 11px; text-align: center; }
+  .add-size input:focus { border-color: #5AC40A; outline: none; }
+  .add-size span { color: #666; font-size: 12px; }
+  .add-btn { padding: 6px 14px; background: #2c2c2c; border: 1px solid #5AC40A; border-radius: 6px;
+    color: #5AC40A; font-size: 11px; cursor: pointer; font-weight: 700; }
+  .add-btn:hover { background: #5AC40A; color: #1e1e1e; }
+
+  .generate-btn { width: 100%; padding: 12px; background: #5AC40A; color: #1e1e1e; border: none;
+    border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; letter-spacing: 1px; }
+  .generate-btn:hover { background: #4aad08; }
+  .generate-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+  .status { text-align: center; margin-top: 10px; font-size: 12px; color: #888; min-height: 20px; }
+  .status.error { color: #ff4444; }
+  .status.success { color: #5AC40A; }
+
+  .progress-bar-wrap { margin-top: 10px; display: none; }
+  .progress-bar-wrap.active { display: block; }
+  .progress-bar-bg { width: 100%; height: 8px; background: #2c2c2c; border-radius: 4px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #5AC40A, #7ddf38); border-radius: 4px;
+    width: 0%; transition: width 0.3s ease; }
+  .progress-bar-fill.generating { animation: pulse-bar 1.5s ease-in-out infinite; }
+  @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .progress-text { text-align: center; font-size: 10px; color: #888; margin-top: 4px; }
+
+  .preview { margin-top: 10px; text-align: center; }
+  .preview img { max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #333; }
+
+  .lang { display: flex; gap: 4px; justify-content: center; margin-bottom: 12px; }
+  .lang-btn { padding: 4px 10px; background: #2c2c2c; border: 1px solid #444; border-radius: 4px;
+    color: #888; font-size: 10px; cursor: pointer; }
+  .lang-btn.active { background: #5AC40A; color: #1e1e1e; border-color: #5AC40A; }
+
+  .section-title { font-size: 11px; color: #aaa; font-weight: 600; margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .select-all { font-size: 10px; color: #5AC40A; cursor: pointer; text-decoration: underline; }
+
+  .ref-area { margin-bottom: 10px; }
+  .ref-drop { border: 2px dashed #444; border-radius: 8px; padding: 12px; text-align: center;
+    cursor: pointer; transition: all 0.3s; min-height: 50px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; position: relative; }
+  .ref-drop:hover { border-color: #5AC40A; }
+  .ref-drop.has-image { border-color: #5AC40A; padding: 6px; }
+  .ref-drop .ref-text { font-size: 11px; color: #666; }
+  .ref-drop .ref-icon { font-size: 20px; }
+  .ref-drop img { max-width: 100%; max-height: 80px; border-radius: 6px; }
+  .ref-drop .ref-remove { position: absolute; top: 4px; right: 8px; background: #ff4444; color: #fff;
+    border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; line-height: 18px; }
+  .ref-hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- SETUP PANELİ (API key girilmemişse) -->
+<div id="setupPanel" style="display:none; text-align:center; padding: 40px 20px;">
+  <h1 style="font-size:24px; margin-bottom:8px;">🎨 Live <span style="color:#5AC40A">Team</span></h1>
+  <p style="font-size:12px; color:#888; margin-bottom:30px;">AI Image Generator for Figma</p>
+  <label style="font-size:12px; color:#aaa; display:block; text-align:left; margin-bottom:6px;">Google AI API Key</label>
+  <input type="text" id="apiKeyInput" placeholder="AIzaSy..." style="width:100%; padding:10px; background:#2c2c2c; border:1px solid #444; border-radius:6px; color:#fff; font-size:13px; margin-bottom:8px;">
+  <p style="font-size:10px; color:#666; margin-bottom:16px; text-align:left;">
+    Получите бесплатный ключ: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A;">aistudio.google.com/apikey</a>
+  </p>
+  <button onclick="saveApiKey()" style="width:100%; padding:12px; background:#5AC40A; color:#1e1e1e; border:none; border-radius:8px; font-size:14px; font-weight:800; cursor:pointer;">НАЧАТЬ 🚀</button>
+</div>
+
+<!-- ANA PANEL -->
+<div id="mainPanel">
+
+<div class="header">
+  <h1>🎨 Live <span>Team</span></h1>
+  <p>AI Image → Figma <span style="font-size:9px; cursor:pointer; color:#666; margin-left:8px;" onclick="resetApiKey()">⚙️</span></p>
+</div>
+
+<div class="lang">
+  <button class="lang-btn active" onclick="setLang('ru')">🇷🇺 RU</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+  <button class="lang-btn" onclick="setLang('tr')">🇹🇷 TR</button>
+</div>
+
+<div class="input-group">
+  <label id="lbl-model">Модель</label>
+  <div class="models">
+    <button class="model-btn" data-model="nano" onclick="selectModel(this)">
+      <span class="model-name">🍌 Banana 2</span>
+      <span class="model-info">Бесплатно • Быстро</span>
+    </button>
+    <button class="model-btn" data-model="nanopro" onclick="selectModel(this)">
+      <span class="model-name">🍌 Banana Pro</span>
+      <span class="model-info">Бесплатно • Реалистично</span>
+    </button>
+    <button class="model-btn active" data-model="imagen4ultra" onclick="selectModel(this)">
+      <span class="model-name">🖼 Imagen 4 Ultra</span>
+      <span class="model-info">Бесплатно • Лучшее качество</span>
+    </button>
+  </div>
+</div>
+
+<div class="input-group">
+  <label id="lbl-prompt">Описание изображения</label>
+  <textarea id="prompt" placeholder="Например: красивая девушка в парижском кафе, закат"></textarea>
+</div>
+
+<div class="input-group ref-area">
+  <label id="lbl-ref">📎 Референс (необязательно)</label>
+  <div class="ref-drop" id="refDrop" onclick="document.getElementById('refInput').click()">
+    <span class="ref-icon">📎</span>
+    <span class="ref-text">Перетащите или нажмите</span>
+  </div>
+  <input type="file" id="refInput" class="ref-hidden" accept="image/*" onchange="handleRefImage(this)">
+</div>
+
+<div class="input-group">
+  <div class="section-title">
+    <span id="lbl-size">Размеры</span>
+    <span class="select-all" id="selectAll" onclick="toggleAll()">Выбрать все</span>
+  </div>
+  <div class="sizes" id="sizes">
+    <button class="size-btn active" data-w="1024" data-h="1024" onclick="toggleSize(this)">1024×1024</button>
+    <button class="size-btn" data-w="1024" data-h="1536" onclick="toggleSize(this)">1024×1536</button>
+    <button class="size-btn" data-w="1536" data-h="1024" onclick="toggleSize(this)">1536×1024</button>
+    <button class="size-btn" data-w="512" data-h="512" onclick="toggleSize(this)">512×512</button>
+    <button class="size-btn" data-w="1080" data-h="1080" onclick="toggleSize(this)">1080×1080</button>
+    <button class="size-btn" data-w="1080" data-h="1920" onclick="toggleSize(this)">1080×1920</button>
+    <button class="size-btn" data-w="900" data-h="600" onclick="toggleSize(this)">900×600</button>
+    <button class="size-btn" data-w="1200" data-h="628" onclick="toggleSize(this)">1200×628</button>
+  </div>
+  <div class="hint" id="hint">Выбрано: 1</div>
+</div>
+
+<div class="input-group">
+  <label id="lbl-custom">Свой размер</label>
+  <div class="add-size">
+    <input type="number" id="newW" placeholder="W">
+    <span>×</span>
+    <input type="number" id="newH" placeholder="H">
+    <button class="add-btn" onclick="addCustomSize()">+</button>
+  </div>
+</div>
+
+<button class="generate-btn" id="genBtn" onclick="generate()">СОЗДАТЬ 🎨</button>
+
+<div class="progress-bar-wrap" id="progressWrap">
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+  <div class="progress-text" id="progressText"></div>
+</div>
+<div class="status" id="status"></div>
+<div class="preview" id="preview"></div>
+
+<script>
+// API key'leri localStorage'dan al (her kullanıcı kendi key'ini girer)
+let GEMINI_KEY = localStorage.getItem('liveteam_gemini_key') || '';
+
+function checkApiKey() {
+  if (!GEMINI_KEY) {
+    document.getElementById('setupPanel').style.display = 'block';
+    document.getElementById('mainPanel').style.display = 'none';
+    return false;
+  }
+  document.getElementById('setupPanel').style.display = 'none';
+  document.getElementById('mainPanel').style.display = 'block';
+  return true;
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return;
+  GEMINI_KEY = key;
+  localStorage.setItem('liveteam_gemini_key', key);
+  checkApiKey();
+}
+
+function resetApiKey() {
+  localStorage.removeItem('liveteam_gemini_key');
+  GEMINI_KEY = '';
+  checkApiKey();
+}
+
+let selectedModel = 'imagen4ultra';
+let refImageBase64 = null;
+
+const translations = {
+  ru: { model: 'Модель', prompt: 'Описание изображения', size: 'Размеры', custom: 'Свой размер', ref: '📎 Референс (необязательно)', placeholder: 'Например: красивая девушка в парижском кафе', btn: 'СОЗДАТЬ 🎨', generating: '⏳ Создаю...', placing: '📐 Размещаю...', done: '✅ Готово!', error: '❌ Ошибка', selected: 'Выбрано', selectAll: 'Все', deselectAll: 'Снять', of: 'из', processing: 'Обработка', refAnalyze: '🔍 Анализ референса...', refDrop: 'Перетащите или нажмите' },
+  en: { model: 'Model', prompt: 'Description', size: 'Sizes', custom: 'Custom size', ref: '📎 Reference (optional)', placeholder: 'Example: beautiful girl in a Paris cafe', btn: 'GENERATE 🎨', generating: '⏳ Generating...', placing: '📐 Placing...', done: '✅ Done!', error: '❌ Error', selected: 'Selected', selectAll: 'All', deselectAll: 'None', of: 'of', processing: 'Processing', refAnalyze: '🔍 Analyzing reference...', refDrop: 'Drag or click' },
+  tr: { model: 'Model', prompt: 'Açıklama', size: 'Boyutlar', custom: 'Özel boyut', ref: '📎 Referans (isteğe bağlı)', placeholder: 'Örnek: Paris kafesinde güzel bir kız', btn: 'OLUŞTUR 🎨', generating: '⏳ Üretiliyor...', placing: '📐 Yerleştiriliyor...', done: '✅ Tamam!', error: '❌ Hata', selected: 'Seçili', selectAll: 'Hepsi', deselectAll: 'Kaldır', of: '/', processing: 'İşleniyor', refAnalyze: '🔍 Referans analiz ediliyor...', refDrop: 'Sürükle veya tıkla' }
+};
+let lang = 'ru';
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${l}')"]`).classList.add('active');
+  document.getElementById('lbl-model').textContent = translations[l].model;
+  document.getElementById('lbl-prompt').textContent = translations[l].prompt;
+  document.getElementById('lbl-size').textContent = translations[l].size;
+  document.getElementById('lbl-custom').textContent = translations[l].custom;
+  document.getElementById('lbl-ref').textContent = translations[l].ref;
+  document.getElementById('prompt').placeholder = translations[l].placeholder;
+  document.getElementById('genBtn').textContent = translations[l].btn;
+  updateHint();
+}
+
+function selectModel(btn) {
+  document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedModel = btn.dataset.model;
+}
+
+function toggleSize(btn) { btn.classList.toggle('active'); updateHint(); }
+
+function toggleAll() {
+  const btns = document.querySelectorAll('.size-btn');
+  const allActive = [...btns].every(b => b.classList.contains('active'));
+  btns.forEach(b => allActive ? b.classList.remove('active') : b.classList.add('active'));
+  updateHint();
+}
+
+function updateHint() {
+  const count = document.querySelectorAll('.size-btn.active').length;
+  document.getElementById('hint').textContent = `${translations[lang].selected}: ${count}`;
+}
+
+function addCustomSize() {
+  const w = parseInt(document.getElementById('newW').value);
+  const h = parseInt(document.getElementById('newH').value);
+  if (!w || !h || w < 10 || h < 10) return;
+  const existing = document.querySelectorAll('.size-btn');
+  for (const btn of existing) { if (btn.dataset.w == w && btn.dataset.h == h) { btn.classList.add('active'); updateHint(); return; } }
+  const btn = document.createElement('button');
+  btn.className = 'size-btn active custom';
+  btn.dataset.w = w; btn.dataset.h = h;
+  btn.innerHTML = `${w}×${h}<span class="remove" onclick="event.stopPropagation();this.parentElement.remove();updateHint();">✕</span>`;
+  btn.onclick = function() { toggleSize(this); };
+  document.getElementById('sizes').appendChild(btn);
+  document.getElementById('newW').value = ''; document.getElementById('newH').value = '';
+  updateHint();
+}
+
+// Referans resim
+function handleRefImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    refImageBase64 = e.target.result.split(',')[1];
+    const drop = document.getElementById('refDrop');
+    drop.classList.add('has-image');
+    drop.innerHTML = `<img src="${e.target.result}"><button class="ref-remove" onclick="event.stopPropagation();removeRef()">✕</button>`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeRef() {
+  refImageBase64 = null;
+  const drop = document.getElementById('refDrop');
+  drop.classList.remove('has-image');
+  drop.innerHTML = `<span class="ref-icon">📎</span><span class="ref-text">${translations[lang].refDrop}</span>`;
+  document.getElementById('refInput').value = '';
+}
+
+// Drag & drop
+document.addEventListener('DOMContentLoaded', () => {
+  const drop = document.getElementById('refDrop');
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.borderColor = '#5AC40A'; });
+  drop.addEventListener('dragleave', () => { drop.style.borderColor = '#444'; });
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault(); drop.style.borderColor = '#444';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const dt = new DataTransfer(); dt.items.add(file);
+      document.getElementById('refInput').files = dt.files;
+      handleRefImage(document.getElementById('refInput'));
+    }
+  });
+});
+
+// Referans analiz (GPT-4o veya Gemini)
+async function analyzeReference(userPrompt) {
+  if (!refImageBase64) return userPrompt;
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [
+        { text: `Analyze this reference image's visual style, composition, lighting, colors, and mood. Combine it with the user's request to write ONE detailed image generation prompt in English. User request: "${userPrompt}". Write ONLY the prompt, photorealistic, 8k quality. Keep the reference image's artistic style.` },
+        { inlineData: { mimeType: 'image/jpeg', data: refImageBase64 } }
+      ]}]
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates[0].content.parts[0].text.trim();
+}
+
+function setStatus(msg, type = '') {
+  document.getElementById('status').textContent = msg;
+  document.getElementById('status').className = 'status ' + type;
+}
+
+function showProgress(pct, text) {
+  const wrap = document.getElementById('progressWrap');
+  const fill = document.getElementById('progressFill');
+  wrap.classList.add('active');
+  fill.style.width = pct + '%';
+  document.getElementById('progressText').textContent = text || '';
+  if (pct < 100) fill.classList.add('generating'); else fill.classList.remove('generating');
+}
+
+function hideProgress() {
+  document.getElementById('progressWrap').classList.remove('active');
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressFill').classList.remove('generating');
+}
+
+function getSelectedSizes() {
+  return [...document.querySelectorAll('.size-btn.active')].map(b => ({ w: parseInt(b.dataset.w), h: parseInt(b.dataset.h) }));
+}
+
+// ============================================================
+// ANA ÜRETIM FONKSİYONU
+// ============================================================
+async function generate() {
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) return;
+  const sizes = getSelectedSizes();
+  if (!sizes.length) { setStatus(translations[lang].error + ': size', 'error'); return; }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  document.getElementById('preview').innerHTML = '';
+
+  let finalPrompt = prompt;
+
+  // Referans analiz
+  if (refImageBase64) {
+    showProgress(3, translations[lang].refAnalyze);
+    try { finalPrompt = await analyzeReference(prompt); } catch (e) { console.warn('Ref hata:', e); }
+    showProgress(15, '✅');
+  }
+
+  // AI üretim
+  setStatus(translations[lang].generating);
+  showProgress(refImageBase64 ? 18 : 5, '🎨 ' + translations[lang].generating);
+
+  let genProgress = refImageBase64 ? 18 : 5;
+  const genInterval = setInterval(() => { if (genProgress < 55) { genProgress += Math.random() * 3; showProgress(Math.min(genProgress, 55), '🎨 ' + translations[lang].generating); } }, 500);
+
+  try {
+    let imageBytes;
+
+    if (selectedModel === 'nano') {
+      imageBytes = await generateNanoBanana(finalPrompt, 'gemini-3.1-flash-image-preview');
+    } else if (selectedModel === 'nanopro') {
+      imageBytes = await generateNanoBanana(finalPrompt, 'gemini-3-pro-image-preview');
+    } else if (selectedModel === 'imagen4ultra') {
+      imageBytes = await generateImagen(finalPrompt, 'imagen-4.0-ultra-generate-001');
+    } else {
+      imageBytes = await generateGPTImage(finalPrompt);
+    }
+
+    clearInterval(genInterval);
+    showProgress(65, '✅');
+
+    // Preview
+    const blob = new Blob([imageBytes], { type: 'image/png' });
+    document.getElementById('preview').innerHTML = `<img src="${URL.createObjectURL(blob)}">`;
+
+    // Figma'ya yerleştir
+    setStatus(translations[lang].placing);
+    const perSize = 30 / sizes.length;
+
+    for (let i = 0; i < sizes.length; i++) {
+      const s = sizes[i];
+      showProgress(Math.round(65 + (i + 1) * perSize), `📐 ${i + 1}/${sizes.length} — ${s.w}×${s.h}`);
+      parent.postMessage({ pluginMessage: { type: 'place-image', imageBytes: Array.from(imageBytes), width: s.w, height: s.h, name: `${prompt.substring(0, 40)} (${s.w}×${s.h})` } }, '*');
+      await new Promise(r => setTimeout(r, 400));
+    }
+
+    showProgress(100, `✅ ${sizes.length} banner!`);
+    setStatus(`${translations[lang].done} (${sizes.length})`, 'success');
+    setTimeout(hideProgress, 3000);
+
+  } catch (err) {
+    clearInterval(genInterval);
+    hideProgress();
+    setStatus(`${translations[lang].error}: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+// NANO BANANA 2 (Gemini) — ÜCRETSİZ
+// ============================================================
+async function generateNanoBanana(prompt, model = 'gemini-3.1-flash-image-preview') {
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + GEMINI_KEY, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: 'Generate an image: ' + prompt }] }],
+      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+
+  const parts = data.candidates[0].content.parts;
+  for (const p of parts) {
+    if (p.inlineData) {
+      const binary = atob(p.inlineData.data);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    }
+  }
+  throw new Error('No image in response');
+}
+
+// ============================================================
+// IMAGEN 4 ULTRA (Google) — ÜCRETSİZ
+// ============================================================
+async function generateImagen(prompt, model = 'imagen-4.0-ultra-generate-001') {
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':predict?key=' + GEMINI_KEY, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      instances: [{ prompt: prompt }],
+      parameters: { sampleCount: 1 }
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  if (!data.predictions?.[0]?.bytesBase64Encoded) throw new Error('No image');
+
+  const binary = atob(data.predictions[0].bytesBase64Encoded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+// ============================================================
+// GPT-IMAGE-1.5 (OpenAI)
+// ============================================================
+async function generateGPTImage(prompt) {
+  const sizes = getSelectedSizes();
+  const maxW = Math.max(...sizes.map(s => s.w));
+  const maxH = Math.max(...sizes.map(s => s.h));
+  let apiSize = '1024x1536';
+  if (maxW > maxH) apiSize = '1536x1024';
+  else if (maxW === maxH) apiSize = '1024x1024';
+
+  const res = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST', headers: { 'Authorization': `Bearer ${OPENAI_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'gpt-image-1.5', prompt, n: 1, size: apiSize, quality: 'high' })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  if (!data.data?.[0]) throw new Error('No image');
+
+  const d = data.data[0];
+  if (d.b64_json) return Uint8Array.from(atob(d.b64_json), c => c.charCodeAt(0));
+  if (d.url) {
+    const r = await fetch(d.url);
+    return new Uint8Array(await (await r.blob()).arrayBuffer());
+  }
+  throw new Error('No image data');
+}
+
+// Figma mesaj
+window.onmessage = (event) => {
+  const msg = event.data.pluginMessage;
+  if (msg?.type === 'error') setStatus(`${translations[lang].error}: ${msg.message}`, 'error');
+};
+
+// Başlangıçta API key kontrol et
+checkApiKey();
+</script>
+
+</div><!-- /mainPanel -->
+
+</body>
+</html>
