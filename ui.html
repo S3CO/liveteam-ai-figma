@@ -503,7 +503,7 @@ function loadRef(file) {
   };
   r.readAsDataURL(file);
 }
-function clearRef(e) { e.stopPropagation(); refB64=null; refDrop.classList.remove('has'); refDrop.innerHTML='<span style="font-size:20px">📎</span><span style="font-size:11px;color:#666">Перетащите</span>'; refFile.value=''; }
+window.clearRef = function(e) { e.stopPropagation(); refB64=null; refDrop.classList.remove('has'); refDrop.innerHTML='<span style="font-size:20px">📎</span><span style="font-size:11px;color:#666">Перетащите</span>'; refFile.value=''; }
 
 // ============================================================
 // PROGRESS
@@ -776,7 +776,7 @@ let paintCtx = null;
 let paintBgCtx = null;
 let paintImgW = 0, paintImgH = 0;
 
-function toggleEdit() {
+window.toggleEdit = function() {
   if (!lastImageB64) return;
   openPaint();
 }
@@ -857,25 +857,25 @@ function paintStroke(e) {
   }
 }
 
-function setPaintTool(tool, el) {
+window.setPaintTool = function(tool, el) {
   if (tool === 'clear') return;
   paintTool = tool;
   document.querySelectorAll('[data-pt]').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
 }
 
-function clearPaintMask() {
+window.clearPaintMask = function() {
   if (paintCtx) {
     const c = document.getElementById('paintMask');
     paintCtx.clearRect(0, 0, c.width, c.height);
   }
 }
 
-function closePaint() {
+window.closePaint = function() {
   document.getElementById('paintEditor').style.display = 'none';
 }
 
-async function doPaintEdit() {
+window.doPaintEdit = async function() {
   const editPrompt = document.getElementById('paintPrompt').value.trim();
   if (!editPrompt) { setStatus('❌ Prompt yazın','err'); return; }
   if (!lastImageB64) { setStatus('❌ Görsel yok — önce seçin','err'); return; }
