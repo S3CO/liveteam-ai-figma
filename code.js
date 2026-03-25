@@ -81,9 +81,11 @@ figma.ui.onmessage = async (msg) => {
         inner.resize(imgW, imgH);
         inner.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: image.hash }];
 
-        // Yatay pozisyon (sol/orta/sağ)
-        if (position === 'left') inner.x = 0;
-        else if (position === 'right') inner.x = s.w - imgW;
+        // Yatay pozisyon - karakter nerede olsun
+        // left = karakter solda = görseli sola hizala (sağ taraf crop)
+        // right = karakter sağda = görseli sağa hizala (sol taraf crop)
+        if (position === 'right') inner.x = 0;
+        else if (position === 'left') inner.x = s.w - imgW;
         else inner.x = (s.w - imgW) / 2;
 
         // Dikey - üstten hizala (yüz görünsün)
