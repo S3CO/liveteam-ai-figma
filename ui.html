@@ -988,43 +988,44 @@ window.onmessage = (e) => {
 
       try {
         // 1. Prediction oluştur
+        showBar(15, '🔍 Replicate API...');
         const createR = await tFetch('https://api.replicate.com/v1/predictions', {
-          method:'POST', headers:{'Authorization':'Bearer '+REP_KEY,'Content-Type':'application/json','Prefer':'wait'},
+          method:'POST', headers:{'Authorization':'Bearer '+REP_KEY,'Content-Type':'application/json'},
           body: JSON.stringify({
             version:'42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b',
             input:{image:dataUri,scale:2,face_enhance:true}
           })
-        }, 120000);
+        }, 30000);
         const createD = await createR.json();
 
-        if (createD.error) throw new Error(createD.detail || createD.error);
-        if (createD.status === 402 || createD.title === 'Insufficient credit') throw new Error(L('noCredit'));
+        if (createD.detail && createD.detail.includes('credit')) throw new Error(L('noCredit'));
+        if (createD.title === 'Insufficient credit') throw new Error(L('noCredit'));
+        if (createD.error) throw new Error(createD.detail || createD.error || JSON.stringify(createD));
+        if (!createD.id) throw new Error('API Error: ' + JSON.stringify(createD).substring(0,100));
 
-        // Prefer: wait ile sonuç direkt gelebilir
+        // 2. Poll sonuç
+        const getUrl = createD.urls?.get || ('https://api.replicate.com/v1/predictions/' + createD.id);
         let outputUrl = null;
-        if (createD.status === 'succeeded' && createD.output) {
-          outputUrl = createD.output;
-        } else if (createD.urls && createD.urls.get) {
-          // Poll et
-          showBar(40, '🔍 İşleniyor...');
-          for (let attempt = 0; attempt < 30; attempt++) {
-            await new Promise(r => setTimeout(r, 2000));
-            const pollR = await tFetch(createD.urls.get, {
-              method:'GET', headers:{'Authorization':'Bearer '+REP_KEY}
-            }, 10000);
-            const pollD = await pollR.json();
-            if (pollD.status === 'succeeded' && pollD.output) { outputUrl = pollD.output; break; }
-            if (pollD.status === 'failed') throw new Error(pollD.error || 'Upscale başarısız');
-            showBar(40 + attempt * 2, '🔍 İşleniyor... ' + Math.floor((Date.now()-vStart)/1000) + 's');
-          }
+        showBar(25, '🔍 HD işleniyor...');
+        for (let attempt = 0; attempt < 60; attempt++) {
+          await new Promise(r => setTimeout(r, 2000));
+          const pollR = await tFetch(getUrl, {
+            method:'GET', headers:{'Authorization':'Bearer '+REP_KEY}
+          }, 10000);
+          const pollD = await pollR.json();
+          if (pollD.status === 'succeeded' && pollD.output) { outputUrl = pollD.output; break; }
+          if (pollD.status === 'failed') throw new Error(pollD.error || 'Upscale failed');
+          if (pollD.status === 'canceled') throw new Error('Canceled');
+          showBar(25 + attempt, '🔍 ' + pollD.status + '... ' + Math.floor((Date.now()-vStart)/1000) + 's');
         }
 
         clearInterval(timer);
-        if (!outputUrl) throw new Error('Sonuç alınamadı');
+        if (!outputUrl) throw new Error('Timeout — sonuç alınamadı');
 
-        // 2. Görseli indir
+        // 3. Görseli indir
         showBar(80, '📥 İndiriliyor...');
         const imgR = await tFetch(outputUrl, {method:'GET'}, 60000);
+        if (!imgR.ok) throw new Error('Download failed: ' + imgR.status);
         const imgBuf = await imgR.arrayBuffer();
         const newBytes = new Uint8Array(imgBuf);
 
