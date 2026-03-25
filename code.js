@@ -105,6 +105,24 @@ figma.ui.onmessage = async (msg) => {
     return;
   }
 
+  // HD için seçili görseli export et
+  if (msg.type === 'export-for-hd') {
+    try {
+      const sel = figma.currentPage.selection;
+      if (!sel.length) {
+        figma.ui.postMessage({ type: 'error', message: 'Bir görsel seçin / Select an image' });
+        return;
+      }
+      const source = sel[0];
+      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 2 } });
+      figma.ui.postMessage({ type: 'exported-for-hd', imageBytes: Array.from(exportBytes) });
+      figma.notify('🔍 HD işleniyor...');
+    } catch (e) {
+      figma.ui.postMessage({ type: 'error', message: e.message });
+    }
+    return;
+  }
+
   // Seçili görseli export et ve UI'a gönder (paint editor için)
   if (msg.type === 'export-selected') {
     try {
