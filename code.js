@@ -45,7 +45,7 @@ figma.ui.onmessage = async (msg) => {
       const sizes = msg.sizes;
 
       // Orijinal görseli büyük kalitede export et, FILL ile crop
-      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 3 } });
+      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
       const image = figma.createImage(exportBytes);
 
       for (let i = 0; i < sizes.length; i++) {
