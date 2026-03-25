@@ -44,18 +44,17 @@ figma.ui.onmessage = async (msg) => {
       const baseName = source.name.replace(/\s*\(\d+×\d+\)/, '').replace(/\s*\d+$/, '').trim() || 'banner';
       const sizes = msg.sizes;
 
-      // Orijinal görseli en yüksek kalitede export et
-      const maxTarget = Math.max(...sizes.map(s => Math.max(s.w, s.h)));
-      const maxSource = Math.max(Math.round(source.width), Math.round(source.height));
-      const scale = Math.max(1, Math.ceil(maxTarget / maxSource));
-      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: Math.min(scale, 4) } });
+      // Görseli en yüksek kalitede export et (2x scale)
+      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 2 } });
       const image = figma.createImage(exportBytes);
 
       const position = msg.position || 'center';
+      const srcW = Math.round(source.width);
+      const srcH = Math.round(source.height);
 
       for (let i = 0; i < sizes.length; i++) {
         const s = sizes[i];
-        if (s.w === Math.round(source.width) && s.h === Math.round(source.height)) continue;
+        if (s.w === srcW && s.h === srcH) continue;
 
         const frame = figma.createFrame();
         frame.name = baseName + ' (' + s.w + '×' + s.h + ')';
@@ -64,37 +63,22 @@ figma.ui.onmessage = async (msg) => {
         frame.y = getBaseY();
         frame.clipsContent = true;
         frame.cornerRadius = 8;
-        frame.fills = [];
 
-        // Görseli tüm banner'ı kaplayacak şekilde büyüt (cover)
-        const srcRatio = Math.round(source.width) / Math.round(source.height);
+        // Frame'e doğrudan image fill — Figma kendi kaliteli scaling'ini kullanır
+        const srcRatio = srcW / srcH;
         const tgtRatio = s.w / s.h;
 
-        let imgW, imgH;
-        // Her zaman büyük tarafı kapla - boşluk kalmasın
-        if (srcRatio > tgtRatio) {
-          imgH = s.h;
-          imgW = s.h * srcRatio;
-        } else {
-          imgW = s.w;
-          imgH = s.w / srcRatio;
-        }
+        // Crop pozisyonu hesapla (0-1 arası)
+        let cropX = 0.5, cropY = 0; // default: center-top
+        if (position === 'left') cropX = 1;    // sağ tarafı crop
+        else if (position === 'right') cropX = 0; // sol tarafı crop
 
-        const inner = figma.createRectangle();
-        inner.resize(imgW, imgH);
-        inner.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: image.hash }];
-
-        // Yatay pozisyon - karakter nerede olsun
-        // left = karakter solda = görseli sola hizala (sağ taraf crop)
-        // right = karakter sağda = görseli sağa hizala (sol taraf crop)
-        if (position === 'right') inner.x = 0;
-        else if (position === 'left') inner.x = s.w - imgW;
-        else inner.x = (s.w - imgW) / 2;
-
-        // Dikey - üstten hizala (yüz görünsün)
-        inner.y = 0;
-
-        frame.appendChild(inner);
+        // scaleMode FILL zaten cover yapıyor, imageTransform ile pozisyon ayarla
+        frame.fills = [{
+          type: 'IMAGE',
+          scaleMode: 'FILL',
+          imageHash: image.hash
+        }];
       }
 
       const all = figma.currentPage.children.filter(n => n.type === 'FRAME' && n.name.match(/\(\d+×\d+\)/));
