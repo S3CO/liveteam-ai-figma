@@ -324,9 +324,16 @@ document.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', (
 // VARIATIONS
 // ============================================================
 document.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('[data-v]').forEach(x => x.classList.remove('on'));
-  b.classList.add('on');
-  vars = parseInt(b.dataset.v);
+  if (b.classList.contains('on')) {
+    // Tekrar tıklayınca seçimi kaldır, default 1'e dön
+    b.classList.remove('on');
+    document.querySelector('[data-v="1"]').classList.add('on');
+    vars = 1;
+  } else {
+    document.querySelectorAll('[data-v]').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    vars = parseInt(b.dataset.v);
+  }
 }));
 
 // ============================================================
