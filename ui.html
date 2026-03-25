@@ -940,7 +940,9 @@ window.onmessage = (e) => {
   if (msg.type === 'ai-resize') handleAIResize(msg);
   if (msg.type === 'error') setStatus('❌ '+msg.message, 'err');
   if (msg.type === 'exported-for-hd') {
-    // HD upscale with Gemini
+    // HD upscale with Gemini — orijinal boyut korunur
+    const hdOrigW = msg.origW;
+    const hdOrigH = msg.origH;
     (async () => {
       const bytes = new Uint8Array(msg.imageBytes);
       let b64str = '';
@@ -964,7 +966,7 @@ window.onmessage = (e) => {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({
             contents: [{parts: [
-              {text: 'Enhance this image to ultra high quality. Make it sharper, more detailed, fix any artifacts or blurriness. Improve lighting and colors. Keep the exact same composition, pose, and content. Output the enhanced image at highest possible quality.'},
+              {text: 'You are a professional photo retoucher. Enhance this image:\n\n1. SHARPEN: Increase sharpness and clarity, especially on face, eyes, hair, skin texture, fabric details\n2. FIX ARTIFACTS: Remove any AI artifacts — extra fingers, distorted hands, blurry patches, weird edges\n3. SKIN: Smooth skin naturally, keep pores visible, remove blemishes\n4. LIGHTING: Enhance contrast, make highlights pop, deepen shadows naturally\n5. COLORS: Make colors more vibrant and rich, boost saturation slightly\n6. DETAILS: Add micro-details to jewelry, clothing texture, hair strands\n\nCRITICAL: Keep the EXACT same composition, pose, framing, and content. Do NOT change the image size, aspect ratio, or crop. Do NOT add or remove any elements. Only enhance quality.'},
               {inlineData: {mimeType: 'image/png', data: imgB64}}
             ]}],
             generationConfig: {responseModalities: ['TEXT','IMAGE']}
@@ -990,17 +992,12 @@ window.onmessage = (e) => {
         document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
         lastImageB64 = newB64;
 
-        // Figma'ya yerleştir
+        // Figma'ya orijinal boyutta yerleştir
         const bname = document.getElementById('bname').value.trim() || 'banner';
-        const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
-        for (let i = 0; i < selSizes.length; i++) {
-          const s = selSizes[i];
-          parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:s.w,height:s.h,name:bname+' HD ('+s.w+'×'+s.h+')'}}, '*');
-          await new Promise(r=>setTimeout(r,400));
-        }
+        parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:hdOrigW,height:hdOrigH,name:bname+' HD ('+hdOrigW+'×'+hdOrigH+')'}}, '*');
 
-        showBar(100, '✅ HD tamamlandı!');
-        setStatus('✅ Görsel HD yapıldı','ok');
+        showBar(100, '✅ HD tamamlandı! ('+hdOrigW+'×'+hdOrigH+')');
+        setStatus('✅ HD yapıldı — orijinal boyut korundu','ok');
         setTimeout(hideBar, 3000);
       } catch(e) {
         clearInterval(timer);

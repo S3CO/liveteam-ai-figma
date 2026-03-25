@@ -105,7 +105,7 @@ figma.ui.onmessage = async (msg) => {
     return;
   }
 
-  // HD için seçili görseli export et
+  // HD için seçili görseli export et (orijinal boyut bilgisi ile)
   if (msg.type === 'export-for-hd') {
     try {
       const sel = figma.currentPage.selection;
@@ -114,8 +114,10 @@ figma.ui.onmessage = async (msg) => {
         return;
       }
       const source = sel[0];
-      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 2 } });
-      figma.ui.postMessage({ type: 'exported-for-hd', imageBytes: Array.from(exportBytes) });
+      const w = Math.round(source.width);
+      const h = Math.round(source.height);
+      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
+      figma.ui.postMessage({ type: 'exported-for-hd', imageBytes: Array.from(exportBytes), origW: w, origH: h });
       figma.notify('🔍 HD işleniyor...');
     } catch (e) {
       figma.ui.postMessage({ type: 'error', message: e.message });
