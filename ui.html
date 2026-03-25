@@ -877,11 +877,14 @@ function closePaint() {
 
 async function doPaintEdit() {
   const editPrompt = document.getElementById('paintPrompt').value.trim();
-  if (!editPrompt || !lastImageB64) return;
+  if (!editPrompt) { setStatus('❌ Prompt yazın','err'); return; }
+  if (!lastImageB64) { setStatus('❌ Görsel yok — önce seçin','err'); return; }
+  if (!OAI_KEY) { setStatus('❌ OpenAI key gerekli','err'); return; }
 
   const btn = document.getElementById('paintGo');
   btn.disabled = true;
   btn.textContent = '⏳...';
+  setStatus('🔍 DALL-E düzenliyor...','');
 
   // 1. Orijinal görsel (temiz, kırmızı işaretsiz)
   const origDataUri = 'data:image/png;base64,' + lastImageB64;
