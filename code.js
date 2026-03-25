@@ -48,14 +48,11 @@ figma.ui.onmessage = async (msg) => {
       const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
       const image = figma.createImage(exportBytes);
 
-      const srcW = Math.round(source.width);
-      const srcH = Math.round(source.height);
-      const srcRatio = srcW / srcH;
-      const position = msg.position || 'center'; // left, center, right
+      const position = msg.position || 'center';
 
       for (let i = 0; i < sizes.length; i++) {
         const s = sizes[i];
-        if (s.w === srcW && s.h === srcH) continue;
+        if (s.w === Math.round(source.width) && s.h === Math.round(source.height)) continue;
 
         const frame = figma.createFrame();
         frame.name = baseName + ' (' + s.w + '×' + s.h + ')';
@@ -64,21 +61,12 @@ figma.ui.onmessage = async (msg) => {
         frame.y = getBaseY();
         frame.clipsContent = true;
         frame.cornerRadius = 8;
-        frame.fills = [{ type: 'SOLID', color: { r: 0.04, g: 0.06, b: 0.1 }, opacity: 1 }];
+        frame.fills = [];
 
-        // İç frame - görseli contain eder, pozisyona göre yerleştirir
-        const tgtRatio = s.w / s.h;
-        let imgW, imgH;
-
-        if (srcRatio > tgtRatio) {
-          // Orijinal daha geniş - genişliğe sığdır
-          imgW = s.w;
-          imgH = s.w / srcRatio;
-        } else {
-          // Orijinal daha uzun - yüksekliğe sığdır
-          imgH = s.h;
-          imgW = s.h * srcRatio;
-        }
+        // Görseli genişliğe tam sığdır, yükseklikten üstten crop
+        const srcRatio = Math.round(source.width) / Math.round(source.height);
+        const imgW = s.w;
+        const imgH = s.w / srcRatio;
 
         const inner = figma.createRectangle();
         inner.resize(imgW, imgH);
@@ -89,7 +77,7 @@ figma.ui.onmessage = async (msg) => {
         else if (position === 'right') inner.x = s.w - imgW;
         else inner.x = (s.w - imgW) / 2;
 
-        // Dikey - her zaman üstten hizala (yüz görünsün)
+        // Dikey - üstten hizala (yüz görünsün)
         inner.y = 0;
 
         frame.appendChild(inner);
