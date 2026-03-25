@@ -11,6 +11,7 @@
   "networkAccess": {
     "allowedDomains": [
       "*"
-    ]
+    ],
+    "reasoning": "Plugin needs access to Google AI, Replicate, and HuggingFace APIs for AI image generation and upscaling"
   }
 }
