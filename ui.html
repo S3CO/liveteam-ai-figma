@@ -879,7 +879,7 @@ async function doPaintEdit() {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         contents: [{parts: [
-          {text: 'I have marked areas in RED/PINK overlay on this image. Edit ONLY the red marked areas: ' + editPrompt + '. Keep everything outside the red marks exactly the same. Output the cleaned edited image without any red marks.'},
+          {text: 'You are a professional photo retouching assistant.\n\nI have marked areas in RED/PINK overlay on this image. Edit ONLY the red marked areas based on this instruction: ' + editPrompt + '\n\nRequirements:\n- Preserve the original resolution and sharpness\n- Do not blur or soften the image\n- Reconstruct the background naturally where needed\n- Maintain lighting, shadows, perspective, and textures\n- Do not introduce artifacts or distortions\n- Keep all other elements outside red marks completely unchanged\n- Make the edit invisible and seamless\n- Preserve fine details and realistic appearance\n- Do not crop or resize the image\n- Remove all red/pink overlay marks from the output\n\nIf reconstruction is difficult, prioritize realism over perfection.\n\nOutput: the edited image only.'},
           {inlineData: {mimeType: 'image/png', data: mergedB64}}
         ]}],
         generationConfig: {responseModalities: ['TEXT','IMAGE']}
