@@ -250,6 +250,8 @@ let REP_KEY = '';
 let model = 'nanopro';
 let vars = 1;
 let lastImageB64 = null;
+let editOrigW = 0;
+let editOrigH = 0;
 let refB64 = null;
 let charPosition = 'center';
 
@@ -829,16 +831,13 @@ async function doPaintEdit() {
     const blob = new Blob([newBytes], {type:'image/png'});
     document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
 
-    // Place in Figma
-    const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
+    // Place in Figma — orijinal boyutta
     const bname = document.getElementById('bname').value.trim() || 'banner';
-    for (let i = 0; i < selSizes.length; i++) {
-      const s = selSizes[i];
-      parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:s.w,height:s.h,name:bname+' painted ('+s.w+'×'+s.h+')'}}, '*');
-      await new Promise(r=>setTimeout(r,400));
-    }
+    const ow = editOrigW || paintImgW;
+    const oh = editOrigH || paintImgH;
+    parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:ow,height:oh,name:bname+' edited ('+ow+'×'+oh+')'}}, '*');
 
-    setStatus('✅ Boyama düzenleme tamamlandı','ok');
+    setStatus('✅ Düzenleme tamamlandı ('+ow+'×'+oh+')','ok');
     closePaint();
     document.getElementById('paintPrompt').value = '';
 
@@ -903,17 +902,14 @@ document.getElementById('editBtn').addEventListener('click', async () => {
     // Update stored image
     lastImageB64 = newB64;
 
-    // Figma'ya yerleştir
+    // Figma'ya orijinal boyutta yerleştir
     const bname = document.getElementById('bname').value.trim() || 'banner';
-    for (let i = 0; i < selSizes.length; i++) {
-      const s = selSizes[i];
-      showBar(60+(i/selSizes.length)*30, '📐 '+(i+1)+'/'+selSizes.length);
-      parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:s.w,height:s.h,name:bname+' edited ('+s.w+'×'+s.h+')'}}, '*');
-      await new Promise(r=>setTimeout(r,400));
-    }
+    const ow = editOrigW || 1024;
+    const oh = editOrigH || 1024;
+    parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:ow,height:oh,name:bname+' edited ('+ow+'×'+oh+')'}}, '*');
 
-    showBar(100, '✅ Düzenlendi!');
-    setStatus('✅ Görsel düzenlendi','ok');
+    showBar(100, '✅ Düzenlendi! ('+ow+'×'+oh+')');
+    setStatus('✅ Görsel düzenlendi — orijinal boyut','ok');
     document.getElementById('editPrompt').value = '';
     setTimeout(hideBar, 3000);
   } catch(e) {
@@ -1032,18 +1028,18 @@ window.onmessage = (e) => {
   }
 
   if (msg.type === 'exported-image') {
-    // Figma'dan gelen görseli paint editöre aç
+    // Figma'dan gelen görseli paint editöre aç + orijinal boyut sakla
+    editOrigW = msg.origW || 0;
+    editOrigH = msg.origH || 0;
     const bytes = new Uint8Array(msg.imageBytes);
     let b64str = '';
     const chk = 8192;
     for (let i = 0; i < bytes.length; i += chk) b64str += String.fromCharCode.apply(null, bytes.subarray(i, i + chk));
     lastImageB64 = btoa(b64str);
-    // Preview'a da koy
     const blob = new Blob([bytes], {type:'image/png'});
     document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
     document.getElementById('editGroup').style.display = 'block';
-    setStatus('✅ Görsel alındı — tıkla veya düzenle','ok');
-    // Direkt paint editor aç
+    setStatus('✅ Görsel alındı ('+editOrigW+'×'+editOrigH+')','ok');
     openPaint();
   }
 };

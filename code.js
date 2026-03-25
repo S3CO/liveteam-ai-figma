@@ -134,9 +134,11 @@ figma.ui.onmessage = async (msg) => {
         return;
       }
       const source = sel[0];
+      const w = Math.round(source.width);
+      const h = Math.round(source.height);
       const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
-      figma.ui.postMessage({ type: 'exported-image', imageBytes: Array.from(exportBytes) });
-      figma.notify('✏️ Görsel düzenleme moduna alındı');
+      figma.ui.postMessage({ type: 'exported-image', imageBytes: Array.from(exportBytes), origW: w, origH: h });
+      figma.notify('✏️ Görsel düzenleme moduna alındı (' + w + '×' + h + ')');
     } catch (e) {
       figma.ui.postMessage({ type: 'error', message: e.message });
     }
