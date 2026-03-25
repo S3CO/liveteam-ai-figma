@@ -90,6 +90,9 @@
   <label>HuggingFace Key <span style="color:#666;font-weight:400">(Flux için, opsiyonel)</span></label>
   <input type="text" id="hfKeyInput" placeholder="hf_..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
   <p style="font-size:10px;color:#666;margin-bottom:8px">🤗 <a href="https://huggingface.co/settings/tokens" target="_blank" style="color:#5AC40A">huggingface.co/settings/tokens</a></p>
+  <label>Replicate Key <span style="color:#666;font-weight:400">(HD için, opsiyonel)</span></label>
+  <input type="text" id="repKeyInput" placeholder="r8_..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
+  <p style="font-size:10px;color:#666;margin-bottom:8px">🔄 <a href="https://replicate.com/account/api-tokens" target="_blank" style="color:#5AC40A">replicate.com/account/api-tokens</a></p>
   <button class="big-btn" id="startBtn">ПОЕХАЛИ! 🚀</button>
   <div style="margin-top:16px;padding:12px;background:#2c2c2c;border-radius:8px;border:1px solid #333;text-align:center">
     <p style="font-size:11px;color:#ccc;margin-bottom:4px">⭐ Нравится? Поставьте звезду!</p>
@@ -247,6 +250,7 @@
 // ============================================================
 let KEY = '';
 let HF_KEY = '';
+let REP_KEY = '';
 let model = 'nanopro';
 let vars = 1;
 let lastImageB64 = null;
@@ -286,6 +290,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
     // Key geçerli
     KEY = k;
     HF_KEY = document.getElementById('hfKeyInput').value.trim() || '';
+    REP_KEY = document.getElementById('repKeyInput').value.trim() || '';
     showMain();
   } catch (e) {
     btn.textContent = '❌ Неверный ключ — попробуйте другой';
@@ -940,15 +945,17 @@ window.onmessage = (e) => {
   if (msg.type === 'ai-resize') handleAIResize(msg);
   if (msg.type === 'error') setStatus('❌ '+msg.message, 'err');
   if (msg.type === 'exported-for-hd') {
-    // HD upscale with Gemini — orijinal boyut korunur
+    // HD upscale with Replicate Real-ESRGAN
     const hdOrigW = msg.origW;
     const hdOrigH = msg.origH;
+    if (!REP_KEY) { setStatus('❌ HD için Replicate key gerekli — başlangıçta girin','err'); btn.disabled=false; btn.textContent='🔍 HD'; return; }
     (async () => {
       const bytes = new Uint8Array(msg.imageBytes);
       let b64str = '';
       const chk = 8192;
       for (let i = 0; i < bytes.length; i += chk) b64str += String.fromCharCode.apply(null, bytes.subarray(i, i + chk));
       const imgB64 = btoa(b64str);
+      const dataUri = 'data:image/png;base64,' + imgB64;
 
       const btn = document.getElementById('hdBtn');
       btn.disabled = true;
@@ -957,47 +964,66 @@ window.onmessage = (e) => {
       const vStart = Date.now();
       const timer = setInterval(() => {
         const sec = Math.floor((Date.now()-vStart)/1000);
-        showBar(30, '🔍 AI HD yapıyor... '+sec+'s');
+        showBar(30, '🔍 Real-ESRGAN HD... '+sec+'s');
       }, 1000);
-      showBar(10, '🔍 AI HD başladı...');
+      showBar(10, '🔍 Real-ESRGAN başlatılıyor...');
 
       try {
-        const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
-          method:'POST', headers:{'Content-Type':'application/json'},
+        // 1. Prediction oluştur
+        const createR = await tFetch('https://api.replicate.com/v1/predictions', {
+          method:'POST', headers:{'Authorization':'Bearer '+REP_KEY,'Content-Type':'application/json','Prefer':'wait'},
           body: JSON.stringify({
-            contents: [{parts: [
-              {text: 'You are a professional photo retoucher. Enhance this image:\n\n1. SHARPEN: Increase sharpness and clarity, especially on face, eyes, hair, skin texture, fabric details\n2. FIX ARTIFACTS: Remove any AI artifacts — extra fingers, distorted hands, blurry patches, weird edges\n3. SKIN: Smooth skin naturally, keep pores visible, remove blemishes\n4. LIGHTING: Enhance contrast, make highlights pop, deepen shadows naturally\n5. COLORS: Make colors more vibrant and rich, boost saturation slightly\n6. DETAILS: Add micro-details to jewelry, clothing texture, hair strands\n\nCRITICAL: Keep the EXACT same composition, pose, framing, and content. Do NOT change the image size, aspect ratio, or crop. Do NOT add or remove any elements. Only enhance quality.'},
-              {inlineData: {mimeType: 'image/png', data: imgB64}}
-            ]}],
-            generationConfig: {responseModalities: ['TEXT','IMAGE']}
+            version:'42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b',
+            input:{image:dataUri,scale:2,face_enhance:true}
           })
-        });
-        const d = await r.json();
-        clearInterval(timer);
+        }, 120000);
+        const createD = await createR.json();
 
-        if (d.error) throw new Error(d.error.message);
+        if (createD.error) throw new Error(createD.error);
 
-        let newB64;
-        for (const p of d.candidates[0].content.parts) {
-          if (p.inlineData) { newB64 = p.inlineData.data; break; }
+        // Prefer: wait ile sonuç direkt gelebilir
+        let outputUrl = null;
+        if (createD.status === 'succeeded' && createD.output) {
+          outputUrl = createD.output;
+        } else if (createD.urls && createD.urls.get) {
+          // Poll et
+          showBar(40, '🔍 İşleniyor...');
+          for (let attempt = 0; attempt < 30; attempt++) {
+            await new Promise(r => setTimeout(r, 2000));
+            const pollR = await tFetch(createD.urls.get, {
+              method:'GET', headers:{'Authorization':'Bearer '+REP_KEY}
+            }, 10000);
+            const pollD = await pollR.json();
+            if (pollD.status === 'succeeded' && pollD.output) { outputUrl = pollD.output; break; }
+            if (pollD.status === 'failed') throw new Error(pollD.error || 'Upscale başarısız');
+            showBar(40 + attempt * 2, '🔍 İşleniyor... ' + Math.floor((Date.now()-vStart)/1000) + 's');
+          }
         }
-        if (!newB64) throw new Error('No image returned');
 
-        const bin = atob(newB64);
-        const newBytes = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) newBytes[i] = bin.charCodeAt(i);
+        clearInterval(timer);
+        if (!outputUrl) throw new Error('Sonuç alınamadı');
+
+        // 2. Görseli indir
+        showBar(80, '📥 İndiriliyor...');
+        const imgR = await tFetch(outputUrl, {method:'GET'}, 60000);
+        const imgBuf = await imgR.arrayBuffer();
+        const newBytes = new Uint8Array(imgBuf);
 
         // Preview
         const blob = new Blob([newBytes], {type:'image/png'});
         document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
-        lastImageB64 = newB64;
+
+        // base64 kaydet
+        let nb64 = '';
+        for (let i = 0; i < newBytes.length; i += chk) nb64 += String.fromCharCode.apply(null, newBytes.subarray(i, i + chk));
+        lastImageB64 = btoa(nb64);
 
         // Figma'ya orijinal boyutta yerleştir
         const bname = document.getElementById('bname').value.trim() || 'banner';
         parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:hdOrigW,height:hdOrigH,name:bname+' HD ('+hdOrigW+'×'+hdOrigH+')'}}, '*');
 
-        showBar(100, '✅ HD tamamlandı! ('+hdOrigW+'×'+hdOrigH+')');
-        setStatus('✅ HD yapıldı — orijinal boyut korundu','ok');
+        showBar(100, '✅ Real-ESRGAN HD tamamlandı!');
+        setStatus('✅ HD yapıldı (Real-ESRGAN 2x)','ok');
         setTimeout(hideBar, 3000);
       } catch(e) {
         clearInterval(timer);

@@ -11,7 +11,9 @@
   "networkAccess": {
     "allowedDomains": [
       "https://generativelanguage.googleapis.com",
-      "https://router.huggingface.co"
+      "https://router.huggingface.co",
+      "https://api.replicate.com",
+      "https://replicate.delivery"
     ]
   }
 }
