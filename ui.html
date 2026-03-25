@@ -28,7 +28,7 @@
   .bar-fill.pulse{animation:p 1.5s infinite}
   @keyframes p{0%,100%{opacity:1}50%{opacity:.5}}
   .bar-text{text-align:center;font-size:10px;color:#888;margin-top:4px}
-  .preview{margin-top:10px;text-align:center}.preview img{max-width:100%;max-height:180px;border-radius:8px;border:1px solid #333}
+  .preview{margin-top:10px;text-align:center}.preview img{max-width:100%;max-height:180px;border-radius:8px;border:1px solid #333;cursor:pointer;transition:.2s}.preview img:hover{border-color:#e67e22;box-shadow:0 0 10px rgba(230,126,34,.3)}
   .lang{display:flex;gap:4px;justify-content:center;margin-bottom:12px}
   .lang .btn{padding:4px 10px;font-size:10px}
   .header{text-align:center;margin-bottom:14px}
@@ -50,6 +50,29 @@
   .check-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer}
   .check-row input{width:16px;height:16px;accent-color:#5AC40A}
   .check-row span{font-size:12px;color:#aaa}
+
+  /* Paint Editor */
+  .paint-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;flex-direction:column;padding:8px}
+  .paint-header{display:flex;align-items:center;justify-content:space-between;padding:4px 0 8px;flex-shrink:0}
+  .paint-header h3{color:#fff;font-size:13px;font-weight:700}
+  .paint-close{background:none;border:none;color:#888;font-size:20px;cursor:pointer;padding:4px 8px}
+  .paint-close:hover{color:#fff}
+  .paint-canvas-wrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;background:#111}
+  .paint-canvas-wrap canvas{border-radius:8px;cursor:crosshair}
+  .paint-tools{display:flex;gap:6px;align-items:center;padding:8px 0;flex-shrink:0;flex-wrap:wrap}
+  .paint-tool{padding:5px 10px;background:#2c2c2c;border:1px solid #444;border-radius:6px;color:#ccc;font-size:10px;cursor:pointer;font-weight:600}
+  .paint-tool:hover{border-color:#e67e22;color:#e67e22}
+  .paint-tool.on{background:#e67e22;color:#1e1e1e;border-color:#e67e22}
+  .paint-size{display:flex;align-items:center;gap:4px}
+  .paint-size input{width:60px;accent-color:#e67e22}
+  .paint-size span{font-size:10px;color:#888}
+  .paint-bottom{display:flex;gap:6px;padding:6px 0;flex-shrink:0;align-items:stretch}
+  .paint-bottom textarea{flex:1;height:36px;background:#2c2c2c;border:1px solid #444;border-radius:6px;color:#fff;padding:8px;font-size:12px;resize:none}
+  .paint-bottom textarea:focus{border-color:#e67e22;outline:none}
+  .paint-bottom textarea::placeholder{color:#666}
+  .paint-go{padding:8px 16px;background:#e67e22;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .paint-go:hover{background:#d35400}
+  .paint-go:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -103,11 +126,19 @@
 <div class="group">
   <label id="L_vars">Варианты</label>
   <div class="row">
-    <div class="btn" data-v="1">1️⃣</div>
+    <div class="btn on" data-v="1">1️⃣</div>
     <div class="btn" data-v="2">2️⃣</div>
-    <div class="btn on" data-v="3">3️⃣</div>
+    <div class="btn" data-v="3">3️⃣</div>
     <div class="btn" data-v="4">4️⃣</div>
   </div>
+</div>
+
+<div class="group" id="editGroup" style="display:none">
+  <div style="display:flex;gap:5px;align-items:center">
+    <textarea id="editPrompt" placeholder="parmakları düzelt / fix fingers / change dress color..." style="height:36px;flex:1"></textarea>
+    <button class="big-btn" id="editBtn" style="width:auto;padding:10px 16px;background:#e67e22;font-size:11px;white-space:nowrap">✏️ DÜZELT</button>
+  </div>
+  <div class="hint">Görsele tıklayarak düzenleme modunu açtınız</div>
 </div>
 
 <div class="group">
@@ -178,13 +209,40 @@
 
 </div><!-- /main -->
 
+<!-- Paint Editor -->
+<div class="paint-overlay" id="paintEditor" style="display:none">
+  <div class="paint-header">
+    <h3>✏️ AI Düzenleme — Boyayıp Düzelt</h3>
+    <button class="paint-close" onclick="closePaint()">&times;</button>
+  </div>
+  <div class="paint-tools">
+    <div class="paint-tool on" data-pt="brush" onclick="setPaintTool('brush',this)">🖌 Boya</div>
+    <div class="paint-tool" data-pt="eraser" onclick="setPaintTool('eraser',this)">🧹 Sil</div>
+    <div class="paint-tool" data-pt="clear" onclick="clearPaintMask()">🗑 Temizle</div>
+    <div class="paint-size">
+      <span>İnce</span>
+      <input type="range" id="brushSize" min="5" max="60" value="25">
+      <span>Kalın</span>
+    </div>
+  </div>
+  <div class="paint-canvas-wrap" id="paintWrap">
+    <canvas id="paintBg"></canvas>
+    <canvas id="paintMask" style="position:absolute;top:0;left:0"></canvas>
+  </div>
+  <div class="paint-bottom">
+    <textarea id="paintPrompt" placeholder="Ne değişsin? (örn: parmakları düzelt, elbiseyi kırmızı yap, arka planı değiştir...)"></textarea>
+    <button class="paint-go" id="paintGo" onclick="doPaintEdit()">✏️ DÜZELT</button>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // STATE
 // ============================================================
 let KEY = '';
 let model = 'nanopro';
-let vars = 3;
+let vars = 1;
+let lastImageB64 = null;
 let refB64 = null;
 let charPosition = 'center';
 
@@ -433,9 +491,16 @@ document.getElementById('genBtn').addEventListener('click', async () => {
 
   if (!images.length) { setStatus('❌ Все варианты не удались','err'); hideBar(); btn.disabled=false; return; }
 
-  // Preview
-  const blob = new Blob([images[images.length-1]],{type:'image/png'});
-  document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'">';
+  // Preview + store for edit
+  const lastBytes = images[images.length-1];
+  const blob = new Blob([lastBytes],{type:'image/png'});
+  document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
+  // Store base64 for edit
+  let b64str = '';
+  const chk = 8192;
+  for (let i = 0; i < lastBytes.length; i += chk) b64str += String.fromCharCode.apply(null, lastBytes.subarray(i, i + chk));
+  lastImageB64 = btoa(b64str);
+  document.getElementById('editGroup').style.display = 'block';
 
   // Figma'ya yerleştir
   const bname = document.getElementById('bname').value.trim() || 'banner';
@@ -552,6 +617,273 @@ async function handleAIResize(data) {
   setTimeout(hideBar, 3000);
   btn.disabled = false;
 }
+
+// ============================================================
+// FIGMA MESSAGES
+// ============================================================
+// ============================================================
+// PAINT EDITOR - Görsele tıkla, boya, düzelt
+// ============================================================
+let paintTool = 'brush';
+let painting = false;
+let paintCtx = null;
+let paintBgCtx = null;
+let paintImgW = 0, paintImgH = 0;
+
+function toggleEdit() {
+  if (!lastImageB64) return;
+  openPaint();
+}
+
+function openPaint() {
+  const editor = document.getElementById('paintEditor');
+  editor.style.display = 'flex';
+
+  const wrap = document.getElementById('paintWrap');
+  const bgCanvas = document.getElementById('paintBg');
+  const maskCanvas = document.getElementById('paintMask');
+
+  // Load image to determine size
+  const img = new Image();
+  img.onload = () => {
+    // Fit in container
+    const maxW = wrap.clientWidth - 4;
+    const maxH = wrap.clientHeight - 4;
+    const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+    const w = Math.floor(img.width * scale);
+    const h = Math.floor(img.height * scale);
+
+    paintImgW = img.width;
+    paintImgH = img.height;
+
+    bgCanvas.width = w; bgCanvas.height = h;
+    maskCanvas.width = w; maskCanvas.height = h;
+
+    // Center canvases
+    const offX = Math.floor((wrap.clientWidth - w) / 2);
+    const offY = Math.floor((wrap.clientHeight - h) / 2);
+    bgCanvas.style.position = 'absolute';
+    bgCanvas.style.left = offX + 'px';
+    bgCanvas.style.top = offY + 'px';
+    maskCanvas.style.left = offX + 'px';
+    maskCanvas.style.top = offY + 'px';
+
+    // Draw background
+    paintBgCtx = bgCanvas.getContext('2d');
+    paintBgCtx.drawImage(img, 0, 0, w, h);
+
+    // Setup mask canvas
+    paintCtx = maskCanvas.getContext('2d');
+    paintCtx.clearRect(0, 0, w, h);
+
+    // Mouse/touch events on mask canvas
+    maskCanvas.onmousedown = (e) => { painting = true; paintStroke(e); };
+    maskCanvas.onmousemove = (e) => { if (painting) paintStroke(e); };
+    maskCanvas.onmouseup = () => painting = false;
+    maskCanvas.onmouseleave = () => painting = false;
+
+    // Touch
+    maskCanvas.ontouchstart = (e) => { e.preventDefault(); painting = true; paintStroke(e.touches[0]); };
+    maskCanvas.ontouchmove = (e) => { e.preventDefault(); if (painting) paintStroke(e.touches[0]); };
+    maskCanvas.ontouchend = () => painting = false;
+  };
+  img.src = 'data:image/png;base64,' + lastImageB64;
+}
+
+function paintStroke(e) {
+  if (!paintCtx) return;
+  const rect = document.getElementById('paintMask').getBoundingClientRect();
+  const x = (e.clientX || e.pageX) - rect.left;
+  const y = (e.clientY || e.pageY) - rect.top;
+  const size = parseInt(document.getElementById('brushSize').value);
+
+  paintCtx.beginPath();
+  if (paintTool === 'brush') {
+    paintCtx.globalCompositeOperation = 'source-over';
+    paintCtx.fillStyle = 'rgba(233, 69, 96, 0.45)';
+    paintCtx.arc(x, y, size / 2, 0, Math.PI * 2);
+    paintCtx.fill();
+  } else if (paintTool === 'eraser') {
+    paintCtx.globalCompositeOperation = 'destination-out';
+    paintCtx.arc(x, y, size / 2, 0, Math.PI * 2);
+    paintCtx.fill();
+    paintCtx.globalCompositeOperation = 'source-over';
+  }
+}
+
+function setPaintTool(tool, el) {
+  if (tool === 'clear') return;
+  paintTool = tool;
+  document.querySelectorAll('[data-pt]').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function clearPaintMask() {
+  if (paintCtx) {
+    const c = document.getElementById('paintMask');
+    paintCtx.clearRect(0, 0, c.width, c.height);
+  }
+}
+
+function closePaint() {
+  document.getElementById('paintEditor').style.display = 'none';
+}
+
+async function doPaintEdit() {
+  const editPrompt = document.getElementById('paintPrompt').value.trim();
+  if (!editPrompt || !lastImageB64) return;
+  if (!KEY) return;
+
+  const btn = document.getElementById('paintGo');
+  btn.disabled = true;
+  btn.textContent = '⏳ AI çalışıyor...';
+
+  // Merge bg + mask into one image (red marks on original)
+  const mergeCanvas = document.createElement('canvas');
+  mergeCanvas.width = paintImgW;
+  mergeCanvas.height = paintImgH;
+  const mCtx = mergeCanvas.getContext('2d');
+
+  // Draw original at full res
+  const img = new Image();
+  await new Promise(r => { img.onload = r; img.src = 'data:image/png;base64,' + lastImageB64; });
+  mCtx.drawImage(img, 0, 0, paintImgW, paintImgH);
+
+  // Draw mask scaled up to original resolution
+  const maskCanvas = document.getElementById('paintMask');
+  mCtx.drawImage(maskCanvas, 0, 0, paintImgW, paintImgH);
+
+  // Get merged base64
+  const mergedB64 = mergeCanvas.toDataURL('image/png').split(',')[1];
+
+  try {
+    const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents: [{parts: [
+          {text: 'I have marked areas in RED/PINK overlay on this image. Edit ONLY the red marked areas: ' + editPrompt + '. Keep everything outside the red marks exactly the same. Output the cleaned edited image without any red marks.'},
+          {inlineData: {mimeType: 'image/png', data: mergedB64}}
+        ]}],
+        generationConfig: {responseModalities: ['TEXT','IMAGE']}
+      })
+    });
+    const d = await r.json();
+
+    if (d.error) throw new Error(d.error.message);
+
+    let newB64;
+    for (const p of d.candidates[0].content.parts) {
+      if (p.inlineData) { newB64 = p.inlineData.data; break; }
+    }
+    if (!newB64) throw new Error('No image returned');
+
+    // Update stored image
+    lastImageB64 = newB64;
+
+    // Update preview in main screen
+    const bin = atob(newB64);
+    const newBytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) newBytes[i] = bin.charCodeAt(i);
+
+    const blob = new Blob([newBytes], {type:'image/png'});
+    document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
+
+    // Place in Figma
+    const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
+    const bname = document.getElementById('bname').value.trim() || 'banner';
+    for (let i = 0; i < selSizes.length; i++) {
+      const s = selSizes[i];
+      parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:s.w,height:s.h,name:bname+' painted ('+s.w+'×'+s.h+')'}}, '*');
+      await new Promise(r=>setTimeout(r,400));
+    }
+
+    setStatus('✅ Boyama düzenleme tamamlandı','ok');
+    closePaint();
+    document.getElementById('paintPrompt').value = '';
+
+  } catch(e) {
+    setStatus('❌ ' + (e.message||'').substring(0,60), 'err');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✏️ DÜZELT';
+}
+
+document.getElementById('editBtn').addEventListener('click', async () => {
+  const editPrompt = document.getElementById('editPrompt').value.trim();
+  if (!editPrompt || !lastImageB64) return;
+  if (!KEY) { showSetup(); return; }
+
+  const btn = document.getElementById('editBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳...';
+
+  const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
+  if (!selSizes.length) { setStatus('Boyut seç','err'); btn.disabled=false; btn.textContent='✏️ DÜZELT'; return; }
+
+  showBar(10, '✏️ AI düzenliyor...');
+
+  const vStart = Date.now();
+  const timer = setInterval(() => {
+    const sec = Math.floor((Date.now()-vStart)/1000);
+    showBar(20, '✏️ AI düzenliyor... '+sec+'s');
+  }, 1000);
+
+  try {
+    const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents: [{parts: [
+          {text: 'Edit this image: ' + editPrompt + '. Keep everything else exactly the same. Only change what is requested. Output the edited image.'},
+          {inlineData: {mimeType: 'image/png', data: lastImageB64}}
+        ]}],
+        generationConfig: {responseModalities: ['TEXT','IMAGE']}
+      })
+    });
+    const d = await r.json();
+    clearInterval(timer);
+
+    if (d.error) throw new Error(d.error.message);
+
+    let newB64;
+    for (const p of d.candidates[0].content.parts) {
+      if (p.inlineData) { newB64 = p.inlineData.data; break; }
+    }
+    if (!newB64) throw new Error('No image returned');
+
+    // Yeni görseli göster
+    const bin = atob(newB64);
+    const newBytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) newBytes[i] = bin.charCodeAt(i);
+
+    const blob2 = new Blob([newBytes], {type:'image/png'});
+    document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob2)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
+
+    // Update stored image
+    lastImageB64 = newB64;
+
+    // Figma'ya yerleştir
+    const bname = document.getElementById('bname').value.trim() || 'banner';
+    for (let i = 0; i < selSizes.length; i++) {
+      const s = selSizes[i];
+      showBar(60+(i/selSizes.length)*30, '📐 '+(i+1)+'/'+selSizes.length);
+      parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:s.w,height:s.h,name:bname+' edited ('+s.w+'×'+s.h+')'}}, '*');
+      await new Promise(r=>setTimeout(r,400));
+    }
+
+    showBar(100, '✅ Düzenlendi!');
+    setStatus('✅ Görsel düzenlendi','ok');
+    document.getElementById('editPrompt').value = '';
+    setTimeout(hideBar, 3000);
+  } catch(e) {
+    clearInterval(timer);
+    setStatus('❌ ' + (e.message||'').substring(0,60), 'err');
+    hideBar();
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✏️ DÜZELT';
+});
 
 // ============================================================
 // FIGMA MESSAGES
