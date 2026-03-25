@@ -96,9 +96,6 @@
   <label id="S_rep">Replicate Key <span style="color:#666;font-weight:400" id="S_repOpt">(HD için)</span></label>
   <input type="text" id="repKeyInput" placeholder="r8_..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
   <p style="font-size:10px;color:#666;margin-bottom:8px">🔄 <a href="https://replicate.com/account/api-tokens" target="_blank" style="color:#5AC40A">replicate.com/account/api-tokens</a></p>
-  <label id="S_oai">OpenAI Key <span style="color:#666;font-weight:400" id="S_oaiOpt">(Düzenleme için)</span></label>
-  <input type="text" id="oaiKeyInput" placeholder="sk-..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
-  <p style="font-size:10px;color:#666;margin-bottom:8px">🔑 <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#5AC40A">platform.openai.com/api-keys</a></p>
   <button class="big-btn" id="startBtn" id="S_start">BAŞLA! 🚀</button>
   <div style="margin-top:16px;padding:12px;background:#2c2c2c;border-radius:8px;border:1px solid #333;text-align:center">
     <p style="font-size:11px;color:#ccc;margin-bottom:4px" id="S_star">⭐ Beğendiysen yıldız ver!</p>
@@ -879,63 +876,47 @@ window.doPaintEdit = async function() {
   const editPrompt = document.getElementById('paintPrompt').value.trim();
   if (!editPrompt) { setStatus('❌ Prompt yazın','err'); return; }
   if (!lastImageB64) { setStatus('❌ Görsel yok — önce seçin','err'); return; }
-  if (!OAI_KEY) { setStatus('❌ OpenAI key gerekli','err'); return; }
 
   const btn = document.getElementById('paintGo');
   btn.disabled = true;
   btn.textContent = '⏳...';
   setStatus('🔍 DALL-E düzenliyor...','');
 
-  // 1. Orijinal görsel (temiz, kırmızı işaretsiz)
-  const origDataUri = 'data:image/png;base64,' + lastImageB64;
+  // 1. Orijinal + kırmızı işaretleri birleştir (Gemini görsün)
+  const mergeCanvas = document.createElement('canvas');
+  mergeCanvas.width = paintImgW;
+  mergeCanvas.height = paintImgH;
+  const mCtx = mergeCanvas.getContext('2d');
 
-  // 2. Mask oluştur — boyanmış alanlar beyaz, geri kalan siyah
-  const maskGenCanvas = document.createElement('canvas');
-  maskGenCanvas.width = paintImgW;
-  maskGenCanvas.height = paintImgH;
-  const mgCtx = maskGenCanvas.getContext('2d');
+  const img = new Image();
+  await new Promise(r => { img.onload = r; img.src = 'data:image/png;base64,' + lastImageB64; });
+  mCtx.drawImage(img, 0, 0, paintImgW, paintImgH);
 
-  // Siyah arka plan (koru)
-  mgCtx.fillStyle = '#000000';
-  mgCtx.fillRect(0, 0, paintImgW, paintImgH);
-
-  // Paint mask'ı al, kırmızı boyaları beyaza çevir
   const paintMaskEl = document.getElementById('paintMask');
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = paintImgW;
-  tempCanvas.height = paintImgH;
-  const tCtx = tempCanvas.getContext('2d');
-  tCtx.drawImage(paintMaskEl, 0, 0, paintImgW, paintImgH);
-  const pixelData = tCtx.getImageData(0, 0, paintImgW, paintImgH);
-  const pixels = pixelData.data;
+  mCtx.drawImage(paintMaskEl, 0, 0, paintImgW, paintImgH);
 
-  // Alpha > 0 olan pikseller = boyanmış alan = beyaz yap
-  for (let i = 0; i < pixels.length; i += 4) {
-    if (pixels[i+3] > 10) { // alpha > 10 = boyanmış
-      mgCtx.fillStyle = '#ffffff';
-      const px = (i/4) % paintImgW;
-      const py = Math.floor((i/4) / paintImgW);
-      mgCtx.fillRect(px, py, 1, 1);
-    }
-  }
-
-  const maskDataUri = maskGenCanvas.toDataURL('image/png');
+  const mergedB64 = mergeCanvas.toDataURL('image/png').split(',')[1];
 
   try {
-    const r = await tFetch('https://mobilbahisyardim.com/api/inpaint', {
-      method:'POST', headers:{'Content-Type':'application/json','x-openai-key':OAI_KEY},
+    const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        image: origDataUri,
-        mask: maskDataUri,
-        prompt: editPrompt
+        contents: [{parts: [
+          {text: 'STRICT IMAGE EDITING RULES:\n\nUser instruction: ' + editPrompt + '\n\nI marked the edit area with RED/PINK paint on this image. The RED areas show WHERE to edit.\n\nCRITICAL RULES:\n1. ONLY modify pixels inside the red/pink marked area\n2. Every pixel OUTSIDE red marks must remain IDENTICAL\n3. Face, eyes, nose, mouth, hair OUTSIDE marked area must stay EXACTLY the same\n4. Do NOT move, rotate, resize, or reposition ANY element\n5. Remove all red/pink overlay marks from output\n6. Match lighting, color temperature of surrounding pixels\n7. Keep exact same resolution and aspect ratio\n\nOutput: the edited image only.'},
+          {inlineData: {mimeType: 'image/png', data: mergedB64}}
+        ]}],
+        generationConfig: {responseModalities: ['TEXT','IMAGE']}
       })
     }, 120000);
     const d = await r.json();
 
-    if (d.error) throw new Error(d.error);
-    if (!d.image) throw new Error('No image returned');
+    if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
 
-    const newB64 = d.image.split(',')[1];
+    let newB64;
+    for (const p of (d.candidates?.[0]?.content?.parts || [])) {
+      if (p.inlineData) { newB64 = p.inlineData.data; break; }
+    }
+    if (!newB64) throw new Error('No image returned');
 
     // Update stored image
     lastImageB64 = newB64;
