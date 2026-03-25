@@ -63,17 +63,16 @@ figma.ui.onmessage = async (msg) => {
         frame.cornerRadius = 8;
         frame.fills = [];
 
+        // Görseli tüm banner'ı kaplayacak şekilde büyüt (cover)
         const srcRatio = Math.round(source.width) / Math.round(source.height);
         const tgtRatio = s.w / s.h;
 
         let imgW, imgH;
-
+        // Her zaman büyük tarafı kapla - boşluk kalmasın
         if (srcRatio > tgtRatio) {
-          // Orijinal daha geniş - yüksekliğe sığdır, yatayda crop
           imgH = s.h;
           imgW = s.h * srcRatio;
         } else {
-          // Orijinal daha uzun - genişliğe sığdır, dikeyden crop
           imgW = s.w;
           imgH = s.w / srcRatio;
         }
@@ -82,7 +81,7 @@ figma.ui.onmessage = async (msg) => {
         inner.resize(imgW, imgH);
         inner.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: image.hash }];
 
-        // Yatay pozisyon
+        // Yatay pozisyon (sol/orta/sağ)
         if (position === 'left') inner.x = 0;
         else if (position === 'right') inner.x = s.w - imgW;
         else inner.x = (s.w - imgW) / 2;
