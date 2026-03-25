@@ -233,7 +233,7 @@
   </div>
   <div class="paint-bottom">
     <textarea id="paintPrompt" placeholder="Ne değişsin? (örn: parmakları düzelt, elbiseyi kırmızı yap, arka planı değiştir...)"></textarea>
-    <button class="paint-go" id="paintGo" onclick="doPaintEdit()">✏️ DÜZELT</button>
+    <button class="paint-go" id="paintGo">✏️ DÜZELT</button>
   </div>
 </div>
 
@@ -969,6 +969,9 @@ window.doPaintEdit = async function() {
 // editBtn removed — editing is done via paint editor only
 
 // ============================================================
+// Paint Go button - addEventListener (onclick çalışmıyor Figma'da)
+document.getElementById('paintGo').addEventListener('click', function() { window.doPaintEdit(); });
+
 // FIGMA MESSAGES
 // ============================================================
 window.onmessage = (e) => {
