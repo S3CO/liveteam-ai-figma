@@ -63,10 +63,20 @@ figma.ui.onmessage = async (msg) => {
         frame.cornerRadius = 8;
         frame.fills = [];
 
-        // Görseli genişliğe tam sığdır, yükseklikten üstten crop
         const srcRatio = Math.round(source.width) / Math.round(source.height);
-        const imgW = s.w;
-        const imgH = s.w / srcRatio;
+        const tgtRatio = s.w / s.h;
+
+        let imgW, imgH;
+
+        if (srcRatio > tgtRatio) {
+          // Orijinal daha geniş - yüksekliğe sığdır, yatayda crop
+          imgH = s.h;
+          imgW = s.h * srcRatio;
+        } else {
+          // Orijinal daha uzun - genişliğe sığdır, dikeyden crop
+          imgW = s.w;
+          imgH = s.w / srcRatio;
+        }
 
         const inner = figma.createRectangle();
         inner.resize(imgW, imgH);
