@@ -10,12 +10,7 @@
   "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": [
-      "https://generativelanguage.googleapis.com",
-      "https://router.huggingface.co",
-      "https://api.replicate.com",
-      "https://replicate.delivery",
-      "https://*.replicate.delivery",
-      "https://pbxt.replicate.delivery"
+      "*"
     ]
   }
 }

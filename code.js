@@ -116,9 +116,9 @@ figma.ui.onmessage = async (msg) => {
       const source = sel[0];
       const w = Math.round(source.width);
       const h = Math.round(source.height);
-      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
+      const exportBytes = await source.exportAsync({ format: 'JPG', constraint: { type: 'SCALE', value: 1 } });
       figma.ui.postMessage({ type: 'exported-for-hd', imageBytes: Array.from(exportBytes), origW: w, origH: h });
-      figma.notify('🔍 HD işleniyor...');
+      figma.notify('🔍 HD işleniyor (' + w + '×' + h + ', ' + Math.round(exportBytes.length/1024) + 'KB)...');
     } catch (e) {
       figma.ui.postMessage({ type: 'error', message: e.message });
     }
