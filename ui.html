@@ -93,9 +93,12 @@
   <label id="S_key">Google AI API Key</label>
   <input type="text" id="keyInput" placeholder="AIzaSy..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
   <p style="font-size:10px;color:#666;margin-bottom:8px">🔑 <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A">aistudio.google.com/apikey</a></p>
-  <label id="S_rep">Replicate Key <span style="color:#666;font-weight:400" id="S_repOpt">(HD için, opsiyonel)</span></label>
+  <label id="S_rep">Replicate Key <span style="color:#666;font-weight:400" id="S_repOpt">(HD için)</span></label>
   <input type="text" id="repKeyInput" placeholder="r8_..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
   <p style="font-size:10px;color:#666;margin-bottom:8px">🔄 <a href="https://replicate.com/account/api-tokens" target="_blank" style="color:#5AC40A">replicate.com/account/api-tokens</a></p>
+  <label id="S_oai">OpenAI Key <span style="color:#666;font-weight:400" id="S_oaiOpt">(Düzenleme için)</span></label>
+  <input type="text" id="oaiKeyInput" placeholder="sk-..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
+  <p style="font-size:10px;color:#666;margin-bottom:8px">🔑 <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#5AC40A">platform.openai.com/api-keys</a></p>
   <button class="big-btn" id="startBtn" id="S_start">BAŞLA! 🚀</button>
   <div style="margin-top:16px;padding:12px;background:#2c2c2c;border-radius:8px;border:1px solid #333;text-align:center">
     <p style="font-size:11px;color:#ccc;margin-bottom:4px" id="S_star">⭐ Beğendiysen yıldız ver!</p>
@@ -241,6 +244,7 @@
 let KEY = '';
 let HF_KEY = '';
 let REP_KEY = '';
+let OAI_KEY = '';
 let model = 'nanopro';
 let vars = 1;
 let lastImageB64 = null;
@@ -282,6 +286,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
     // Key geçerli
     KEY = k;
     REP_KEY = document.getElementById('repKeyInput').value.trim() || '';
+    OAI_KEY = document.getElementById('oaiKeyInput').value.trim() || '';
     showMain();
     applyLang();
   } catch (e) {
@@ -915,7 +920,7 @@ async function doPaintEdit() {
 
   try {
     const r = await tFetch('https://mobilbahisyardim.com/api/inpaint', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json','x-openai-key':OAI_KEY},
       body: JSON.stringify({
         image: origDataUri,
         mask: maskDataUri,
@@ -1001,7 +1006,7 @@ window.onmessage = (e) => {
         // Real-ESRGAN via proxy
         showBar(15, '🔍 Real-ESRGAN HD...');
         const hdR = await tFetch('https://mobilbahisyardim.com/api/upscale', {
-          method:'POST', headers:{'Content-Type':'application/json'},
+          method:'POST', headers:{'Content-Type':'application/json','x-replicate-key':REP_KEY},
           body: JSON.stringify({ image: dataUri, scale: 2 })
         }, 120000);
         const hdD = await hdR.json();
