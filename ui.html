@@ -87,6 +87,9 @@
   <label>Google AI API Key</label>
   <input type="text" id="keyInput" placeholder="AIzaSy..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
   <p style="font-size:10px;color:#666;margin-bottom:8px">🔑 <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A">aistudio.google.com/apikey</a></p>
+  <label>HuggingFace Key <span style="color:#666;font-weight:400">(Flux için, opsiyonel)</span></label>
+  <input type="text" id="hfKeyInput" placeholder="hf_..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
+  <p style="font-size:10px;color:#666;margin-bottom:8px">🤗 <a href="https://huggingface.co/settings/tokens" target="_blank" style="color:#5AC40A">huggingface.co/settings/tokens</a></p>
   <button class="big-btn" id="startBtn">ПОЕХАЛИ! 🚀</button>
   <div style="margin-top:16px;padding:12px;background:#2c2c2c;border-radius:8px;border:1px solid #333;text-align:center">
     <p style="font-size:11px;color:#ccc;margin-bottom:4px">⭐ Нравится? Поставьте звезду!</p>
@@ -281,7 +284,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
 
     // Key geçerli
     KEY = k;
-    // Key kaydetme - her açılışta yeniden girilecek
+    HF_KEY = document.getElementById('hfKeyInput').value.trim() || '';
     showMain();
   } catch (e) {
     btn.textContent = '❌ Неверный ключ — попробуйте другой';
@@ -422,9 +425,8 @@ document.getElementById('genBtn').addEventListener('click', async () => {
   if (!prompt) return;
   if (!KEY && model !== 'flux') { showSetup(); return; }
   if (model === 'flux' && !HF_KEY) {
-    const k = window.prompt('HuggingFace API Key girin (hf_... ile başlar):');
-    if (!k || !k.startsWith('hf_')) { setStatus('Geçersiz HF key','err'); return; }
-    HF_KEY = k;
+    setStatus('❌ Flux için HF key gerekli — başlangıçta girin','err');
+    return;
   }
 
   const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
