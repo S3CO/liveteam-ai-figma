@@ -136,13 +136,6 @@
   </div>
 </div>
 
-<div class="group" id="editGroup" style="display:none">
-  <div style="display:flex;gap:5px;align-items:center">
-    <textarea id="editPrompt" placeholder="parmakları düzelt / fix fingers / change dress color..." style="height:36px;flex:1"></textarea>
-    <button class="big-btn" id="editBtn" style="width:auto;padding:10px 16px;background:#e67e22;font-size:11px;white-space:nowrap">✏️ DÜZELT</button>
-  </div>
-  <div class="hint">Görsele tıklayarak düzenleme modunu açtınız</div>
-</div>
 
 <div class="group">
   <label id="L_name">Название</label>
@@ -315,9 +308,92 @@ function showSetup() {
 // ============================================================
 // LANG
 // ============================================================
+let currentLang = 'ru';
+const LANGS = {
+  ru: {
+    model:'Модель', prompt:'Описание', vars:'Варианты', name:'Название',
+    ref:'📎 Референс', sizes:'Размеры', custom:'Свой размер', all:'Все',
+    create:'СОЗДАТЬ 🎨', edit:'✏️ DÜZENLE', hd:'🔍 HD', resize:'📐 RESIZE',
+    charPos:'Позиция персонажа', left:'◀️ Лево', center:'🔘 Центр', right:'▶️ Право',
+    refDrop:'Перетащите или нажмите', sizeHint:'выбрано',
+    editLabel:'✏️ Редактировать', editPlaceholder:'исправь пальцы / измени цвет платья...',
+    editBtn:'✏️ ИСПРАВИТЬ', editHint:'Нажмите на изображение для редактирования',
+    noCredit:'❌ Недостаточно средств на Replicate', noRepKey:'❌ Нужен Replicate ключ для HD',
+    hdDone:'✅ HD готово', editDone:'✅ Отредактировано', paintTitle:'✏️ AI Редактор — Рисуй и исправляй',
+    brush:'🖌 Кисть', eraser:'🧹 Ластик', clear:'🗑 Очистить', thin:'Тонко', thick:'Толсто',
+    paintPlaceholder:'Что изменить? (исправь пальцы, измени фон...)', paintBtn:'✏️ ИСПРАВИТЬ',
+    paintDone:'✅ Редактирование завершено', imgSelect:'Выберите элемент', hdProcessing:'🔍 Real-ESRGAN HD...',
+    info:'🔥 Только сегодня!'
+  },
+  en: {
+    model:'Model', prompt:'Description', vars:'Variants', name:'Name',
+    ref:'📎 Reference', sizes:'Sizes', custom:'Custom size', all:'All',
+    create:'CREATE 🎨', edit:'✏️ EDIT', hd:'🔍 HD', resize:'📐 RESIZE',
+    charPos:'Character position', left:'◀️ Left', center:'🔘 Center', right:'▶️ Right',
+    refDrop:'Drag or click', sizeHint:'selected',
+    editLabel:'✏️ Edit image', editPlaceholder:'fix fingers / change dress color...',
+    editBtn:'✏️ FIX', editHint:'Click image to edit',
+    noCredit:'❌ Insufficient Replicate credit', noRepKey:'❌ Replicate key needed for HD',
+    hdDone:'✅ HD done', editDone:'✅ Edited', paintTitle:'✏️ AI Editor — Paint & Fix',
+    brush:'🖌 Brush', eraser:'🧹 Eraser', clear:'🗑 Clear', thin:'Thin', thick:'Thick',
+    paintPlaceholder:'What to change? (fix fingers, change background...)', paintBtn:'✏️ FIX',
+    paintDone:'✅ Edit complete', imgSelect:'Select an element', hdProcessing:'🔍 Real-ESRGAN HD...',
+    info:'🔥 Limited time!'
+  },
+  tr: {
+    model:'Model', prompt:'Açıklama', vars:'Varyant', name:'İsim',
+    ref:'📎 Referans', sizes:'Boyutlar', custom:'Özel boyut', all:'Tümü',
+    create:'OLUŞTUR 🎨', edit:'✏️ DÜZENLE', hd:'🔍 HD', resize:'📐 RESIZE',
+    charPos:'Karakter pozisyonu', left:'◀️ Sol', center:'🔘 Orta', right:'▶️ Sağ',
+    refDrop:'Sürükle veya tıkla', sizeHint:'seçili',
+    editLabel:'✏️ Görseli düzenle', editPlaceholder:'parmakları düzelt / elbise rengini değiştir...',
+    editBtn:'✏️ DÜZELT', editHint:'Düzenlemek için görsele tıklayın',
+    noCredit:'❌ Replicate kredisi yetersiz', noRepKey:'❌ HD için Replicate key gerekli',
+    hdDone:'✅ HD tamamlandı', editDone:'✅ Düzenlendi', paintTitle:'✏️ AI Düzenleme — Boyayıp Düzelt',
+    brush:'🖌 Boya', eraser:'🧹 Sil', clear:'🗑 Temizle', thin:'İnce', thick:'Kalın',
+    paintPlaceholder:'Ne değişsin? (parmakları düzelt, arka planı değiştir...)', paintBtn:'✏️ DÜZELT',
+    paintDone:'✅ Düzenleme tamamlandı', imgSelect:'Bir görsel seçin', hdProcessing:'🔍 Real-ESRGAN HD...',
+    info:'🔥 Bugüne özel fırsat!'
+  }
+};
+
+function L(key) { return LANGS[currentLang]?.[key] || LANGS.en[key] || key; }
+
+function applyLang() {
+  document.getElementById('L_model').textContent = L('model');
+  document.getElementById('L_prompt').textContent = L('prompt');
+  document.getElementById('L_vars').textContent = L('vars');
+  document.getElementById('L_name').textContent = L('name');
+  document.getElementById('L_ref').textContent = L('ref');
+  document.getElementById('L_sizes').textContent = L('sizes');
+  document.getElementById('L_custom').textContent = L('custom');
+  document.getElementById('selAll').textContent = L('all');
+  document.getElementById('genBtn').textContent = L('create');
+  document.getElementById('editSelBtn').textContent = L('edit');
+  document.getElementById('hdBtn').textContent = L('hd');
+  document.getElementById('resizeBtn').textContent = L('resize');
+  document.getElementById('posLeft').textContent = L('left');
+  document.getElementById('posCenter').textContent = L('center');
+  document.getElementById('posRight').textContent = L('right');
+  if (!document.querySelector('.ref-drop.has')) document.getElementById('refLabel').textContent = L('refDrop');
+  // Edit group
+  var el = document.getElementById('L_edit'); if(el) el.textContent = L('editLabel');
+  var ep = document.getElementById('editPrompt'); if(ep) ep.placeholder = L('editPlaceholder');
+  var eb = document.getElementById('editBtn'); if(eb && !eb.disabled) eb.textContent = L('editBtn');
+  // Paint editor
+  var pt = document.querySelector('.paint-header h3'); if(pt) pt.textContent = L('paintTitle');
+  var pp = document.getElementById('paintPrompt'); if(pp) pp.placeholder = L('paintPlaceholder');
+  var pg = document.getElementById('paintGo'); if(pg && !pg.disabled) pg.textContent = L('paintBtn');
+  document.querySelectorAll('[data-pt="brush"]').forEach(e => e.textContent = L('brush'));
+  document.querySelectorAll('[data-pt="eraser"]').forEach(e => e.textContent = L('eraser'));
+  document.querySelectorAll('[data-pt="clear"]').forEach(e => e.textContent = L('clear'));
+}
+
 document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('[data-lang]').forEach(x => x.classList.remove('on'));
   b.classList.add('on');
+  currentLang = b.dataset.lang;
+  applyLang();
 }));
 
 // ============================================================
@@ -529,7 +605,6 @@ document.getElementById('genBtn').addEventListener('click', async () => {
   const chk = 8192;
   for (let i = 0; i < lastBytes.length; i += chk) b64str += String.fromCharCode.apply(null, lastBytes.subarray(i, i + chk));
   lastImageB64 = btoa(b64str);
-  document.getElementById('editGroup').style.display = 'block';
 
   // Figma'ya yerleştir
   const bname = document.getElementById('bname').value.trim() || 'banner';
@@ -837,7 +912,7 @@ async function doPaintEdit() {
     const oh = editOrigH || paintImgH;
     parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:ow,height:oh,name:bname+' edited ('+ow+'×'+oh+')'}}, '*');
 
-    setStatus('✅ Düzenleme tamamlandı ('+ow+'×'+oh+')','ok');
+    setStatus(L('paintDone')+' ('+ow+'×'+oh+')','ok');
     closePaint();
     document.getElementById('paintPrompt').value = '';
 
@@ -849,78 +924,7 @@ async function doPaintEdit() {
   btn.textContent = '✏️ DÜZELT';
 }
 
-document.getElementById('editBtn').addEventListener('click', async () => {
-  const editPrompt = document.getElementById('editPrompt').value.trim();
-  if (!editPrompt || !lastImageB64) return;
-  if (!KEY) { showSetup(); return; }
-
-  const btn = document.getElementById('editBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳...';
-
-  const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
-  if (!selSizes.length) { setStatus('Boyut seç','err'); btn.disabled=false; btn.textContent='✏️ DÜZELT'; return; }
-
-  showBar(10, '✏️ AI düzenliyor...');
-
-  const vStart = Date.now();
-  const timer = setInterval(() => {
-    const sec = Math.floor((Date.now()-vStart)/1000);
-    showBar(20, '✏️ AI düzenliyor... '+sec+'s');
-  }, 1000);
-
-  try {
-    const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        contents: [{parts: [
-          {text: 'Edit this image: ' + editPrompt + '. Keep everything else exactly the same. Only change what is requested. Output the edited image.'},
-          {inlineData: {mimeType: 'image/png', data: lastImageB64}}
-        ]}],
-        generationConfig: {responseModalities: ['TEXT','IMAGE']}
-      })
-    });
-    const d = await r.json();
-    clearInterval(timer);
-
-    if (d.error) throw new Error(d.error.message);
-
-    let newB64;
-    for (const p of d.candidates[0].content.parts) {
-      if (p.inlineData) { newB64 = p.inlineData.data; break; }
-    }
-    if (!newB64) throw new Error('No image returned');
-
-    // Yeni görseli göster
-    const bin = atob(newB64);
-    const newBytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) newBytes[i] = bin.charCodeAt(i);
-
-    const blob2 = new Blob([newBytes], {type:'image/png'});
-    document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob2)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
-
-    // Update stored image
-    lastImageB64 = newB64;
-
-    // Figma'ya orijinal boyutta yerleştir
-    const bname = document.getElementById('bname').value.trim() || 'banner';
-    const ow = editOrigW || 1024;
-    const oh = editOrigH || 1024;
-    parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:ow,height:oh,name:bname+' edited ('+ow+'×'+oh+')'}}, '*');
-
-    showBar(100, '✅ Düzenlendi! ('+ow+'×'+oh+')');
-    setStatus('✅ Görsel düzenlendi — orijinal boyut','ok');
-    document.getElementById('editPrompt').value = '';
-    setTimeout(hideBar, 3000);
-  } catch(e) {
-    clearInterval(timer);
-    setStatus('❌ ' + (e.message||'').substring(0,60), 'err');
-    hideBar();
-  }
-
-  btn.disabled = false;
-  btn.textContent = '✏️ DÜZELT';
-});
+// editBtn removed — editing is done via paint editor only
 
 // ============================================================
 // FIGMA MESSAGES
@@ -939,7 +943,7 @@ window.onmessage = (e) => {
     // HD upscale with Replicate Real-ESRGAN
     const hdOrigW = msg.origW;
     const hdOrigH = msg.origH;
-    if (!REP_KEY) { setStatus('❌ HD için Replicate key gerekli — başlangıçta girin','err'); btn.disabled=false; btn.textContent='🔍 HD'; return; }
+    if (!REP_KEY) { setStatus(L('noRepKey'),'err'); btn.disabled=false; btn.textContent=L('hd'); return; }
     (async () => {
       const bytes = new Uint8Array(msg.imageBytes);
       let b64str = '';
@@ -970,7 +974,8 @@ window.onmessage = (e) => {
         }, 120000);
         const createD = await createR.json();
 
-        if (createD.error) throw new Error(createD.error);
+        if (createD.error) throw new Error(createD.detail || createD.error);
+        if (createD.status === 402 || createD.title === 'Insufficient credit') throw new Error(L('noCredit'));
 
         // Prefer: wait ile sonuç direkt gelebilir
         let outputUrl = null;
@@ -1013,8 +1018,8 @@ window.onmessage = (e) => {
         const bname = document.getElementById('bname').value.trim() || 'banner';
         parent.postMessage({pluginMessage:{type:'place-image',imageBytes:Array.from(newBytes),width:hdOrigW,height:hdOrigH,name:bname+' HD ('+hdOrigW+'×'+hdOrigH+')'}}, '*');
 
-        showBar(100, '✅ Real-ESRGAN HD tamamlandı!');
-        setStatus('✅ HD yapıldı (Real-ESRGAN 2x)','ok');
+        showBar(100, L('hdDone'));
+        setStatus(L('hdDone') + ' (Real-ESRGAN 2x)','ok');
         setTimeout(hideBar, 3000);
       } catch(e) {
         clearInterval(timer);
@@ -1022,7 +1027,7 @@ window.onmessage = (e) => {
         hideBar();
       }
       btn.disabled = false;
-      btn.textContent = '🔍 HD';
+      btn.textContent = L('hd');
     })();
     return;
   }
@@ -1038,8 +1043,7 @@ window.onmessage = (e) => {
     lastImageB64 = btoa(b64str);
     const blob = new Blob([bytes], {type:'image/png'});
     document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
-    document.getElementById('editGroup').style.display = 'block';
-    setStatus('✅ Görsel alındı ('+editOrigW+'×'+editOrigH+')','ok');
+      setStatus('✅ Görsel alındı ('+editOrigW+'×'+editOrigH+')','ok');
     openPaint();
   }
 };
