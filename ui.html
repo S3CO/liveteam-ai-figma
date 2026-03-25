@@ -873,50 +873,61 @@ function closePaint() {
 async function doPaintEdit() {
   const editPrompt = document.getElementById('paintPrompt').value.trim();
   if (!editPrompt || !lastImageB64) return;
-  if (!KEY) return;
 
   const btn = document.getElementById('paintGo');
   btn.disabled = true;
-  btn.textContent = '⏳ AI çalışıyor...';
+  btn.textContent = '⏳...';
 
-  // Merge bg + mask into one image (red marks on original)
-  const mergeCanvas = document.createElement('canvas');
-  mergeCanvas.width = paintImgW;
-  mergeCanvas.height = paintImgH;
-  const mCtx = mergeCanvas.getContext('2d');
+  // 1. Orijinal görsel (temiz, kırmızı işaretsiz)
+  const origDataUri = 'data:image/png;base64,' + lastImageB64;
 
-  // Draw original at full res
-  const img = new Image();
-  await new Promise(r => { img.onload = r; img.src = 'data:image/png;base64,' + lastImageB64; });
-  mCtx.drawImage(img, 0, 0, paintImgW, paintImgH);
+  // 2. Mask oluştur — boyanmış alanlar beyaz, geri kalan siyah
+  const maskGenCanvas = document.createElement('canvas');
+  maskGenCanvas.width = paintImgW;
+  maskGenCanvas.height = paintImgH;
+  const mgCtx = maskGenCanvas.getContext('2d');
 
-  // Draw mask scaled up to original resolution
-  const maskCanvas = document.getElementById('paintMask');
-  mCtx.drawImage(maskCanvas, 0, 0, paintImgW, paintImgH);
+  // Siyah arka plan (koru)
+  mgCtx.fillStyle = '#000000';
+  mgCtx.fillRect(0, 0, paintImgW, paintImgH);
 
-  // Get merged base64
-  const mergedB64 = mergeCanvas.toDataURL('image/png').split(',')[1];
+  // Paint mask'ı al, kırmızı boyaları beyaza çevir
+  const paintMaskEl = document.getElementById('paintMask');
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = paintImgW;
+  tempCanvas.height = paintImgH;
+  const tCtx = tempCanvas.getContext('2d');
+  tCtx.drawImage(paintMaskEl, 0, 0, paintImgW, paintImgH);
+  const pixelData = tCtx.getImageData(0, 0, paintImgW, paintImgH);
+  const pixels = pixelData.data;
+
+  // Alpha > 0 olan pikseller = boyanmış alan = beyaz yap
+  for (let i = 0; i < pixels.length; i += 4) {
+    if (pixels[i+3] > 10) { // alpha > 10 = boyanmış
+      mgCtx.fillStyle = '#ffffff';
+      const px = (i/4) % paintImgW;
+      const py = Math.floor((i/4) / paintImgW);
+      mgCtx.fillRect(px, py, 1, 1);
+    }
+  }
+
+  const maskDataUri = maskGenCanvas.toDataURL('image/png');
 
   try {
-    const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
+    const r = await tFetch('https://mobilbahisyardim.com/api/inpaint', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        contents: [{parts: [
-          {text: 'STRICT IMAGE EDITING RULES:\n\nUser instruction: ' + editPrompt + '\n\nI marked the edit area with RED/PINK paint on the image.\n\nCRITICAL — YOU MUST FOLLOW THESE RULES EXACTLY:\n1. ONLY modify pixels inside the red/pink marked area\n2. Every single pixel OUTSIDE the red marks must remain IDENTICAL — do NOT touch them at all\n3. The face, eyes, nose, mouth, hair of any person OUTSIDE the marked area must stay EXACTLY the same — same position, same expression, same gaze direction, same eye alignment\n4. Do NOT move, rotate, resize, or reposition ANY element\n5. Do NOT change skin tone, eye color, hair color, or facial features of unmarked areas\n6. Do NOT add blur, softness, or style changes to unmarked areas\n7. Remove the red/pink overlay marks from output\n8. Match the lighting, color temperature, and style of surrounding pixels\n9. Keep exact same resolution and aspect ratio\n\nThink of it like Photoshop content-aware fill — ONLY the masked area changes, everything else is pixel-perfect identical.\n\nOutput: the edited image only.'},
-          {inlineData: {mimeType: 'image/png', data: mergedB64}}
-        ]}],
-        generationConfig: {responseModalities: ['TEXT','IMAGE']}
+        image: origDataUri,
+        mask: maskDataUri,
+        prompt: editPrompt
       })
-    });
+    }, 120000);
     const d = await r.json();
 
-    if (d.error) throw new Error(d.error.message);
+    if (d.error) throw new Error(d.error);
+    if (!d.image) throw new Error('No image returned');
 
-    let newB64;
-    for (const p of d.candidates[0].content.parts) {
-      if (p.inlineData) { newB64 = p.inlineData.data; break; }
-    }
-    if (!newB64) throw new Error('No image returned');
+    const newB64 = d.image.split(',')[1];
 
     // Update stored image
     lastImageB64 = newB64;
