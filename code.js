@@ -44,8 +44,11 @@ figma.ui.onmessage = async (msg) => {
       const baseName = source.name.replace(/\s*\(\d+×\d+\)/, '').replace(/\s*\d+$/, '').trim() || 'banner';
       const sizes = msg.sizes;
 
-      // Orijinal görseli büyük kalitede export et, FILL ile crop
-      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
+      // Orijinal görseli en yüksek kalitede export et
+      const maxTarget = Math.max(...sizes.map(s => Math.max(s.w, s.h)));
+      const maxSource = Math.max(Math.round(source.width), Math.round(source.height));
+      const scale = Math.max(1, Math.ceil(maxTarget / maxSource));
+      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: Math.min(scale, 4) } });
       const image = figma.createImage(exportBytes);
 
       const position = msg.position || 'center';
