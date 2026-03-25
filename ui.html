@@ -463,7 +463,7 @@ document.getElementById('resizeBtn').addEventListener('click', () => {
   const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
   if (!selSizes.length) { setStatus('Выберите размеры / Select sizes','err'); return; }
   if (!KEY) { showSetup(); return; }
-  parent.postMessage({ pluginMessage: { type: 'resize-selected', sizes: selSizes } }, '*');
+  parent.postMessage({ pluginMessage: { type: 'resize-selected', sizes: selSizes, position: charPosition } }, '*');
   setStatus('📐 Exporting...','');
 });
 
