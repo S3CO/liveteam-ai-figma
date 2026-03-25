@@ -84,16 +84,22 @@
     <p style="font-size:12px;color:#888;margin-top:4px">AI Image Generator for Figma</p>
     <p style="font-size:20px;margin:16px 0">🍌🎰🖼️✨</p>
   </div>
-  <label>Google AI API Key</label>
+  <label id="S_lang">Dil / Language / Язык</label>
+  <div class="row" style="margin-bottom:12px;justify-content:center">
+    <div class="btn" data-sl="ru">🇷🇺 Русский</div>
+    <div class="btn" data-sl="en">🇬🇧 English</div>
+    <div class="btn on" data-sl="tr">🇹🇷 Türkçe</div>
+  </div>
+  <label id="S_key">Google AI API Key</label>
   <input type="text" id="keyInput" placeholder="AIzaSy..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
   <p style="font-size:10px;color:#666;margin-bottom:8px">🔑 <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#5AC40A">aistudio.google.com/apikey</a></p>
-  <label>Replicate Key <span style="color:#666;font-weight:400">(HD için, opsiyonel)</span></label>
+  <label id="S_rep">Replicate Key <span style="color:#666;font-weight:400" id="S_repOpt">(HD için, opsiyonel)</span></label>
   <input type="text" id="repKeyInput" placeholder="r8_..." style="width:100%;padding:10px;font-size:13px;margin-bottom:8px">
   <p style="font-size:10px;color:#666;margin-bottom:8px">🔄 <a href="https://replicate.com/account/api-tokens" target="_blank" style="color:#5AC40A">replicate.com/account/api-tokens</a></p>
-  <button class="big-btn" id="startBtn">ПОЕХАЛИ! 🚀</button>
+  <button class="big-btn" id="startBtn" id="S_start">BAŞLA! 🚀</button>
   <div style="margin-top:16px;padding:12px;background:#2c2c2c;border-radius:8px;border:1px solid #333;text-align:center">
-    <p style="font-size:11px;color:#ccc;margin-bottom:4px">⭐ Нравится? Поставьте звезду!</p>
-    <p style="font-size:10px;color:#888;margin-bottom:8px">Каждая ⭐ = +1 к удаче 🍀 Без звезды AI рисует 🐶</p>
+    <p style="font-size:11px;color:#ccc;margin-bottom:4px" id="S_star">⭐ Beğendiysen yıldız ver!</p>
+    <p style="font-size:10px;color:#888;margin-bottom:8px" id="S_starSub">Her ⭐ = +1 şans 🍀</p>
     <a href="https://github.com/S3CO/liveteam-ai-figma" target="_blank" style="display:inline-block;padding:6px 16px;background:#333;border:1px solid #5AC40A;border-radius:6px;color:#5AC40A;font-size:11px;font-weight:700;text-decoration:none">⭐ Star on GitHub</a>
   </div>
 </div>
@@ -106,11 +112,6 @@
   <p>AI Image → Figma</p>
 </div>
 
-<div class="lang">
-  <div class="btn on" data-lang="ru">🇷🇺 RU</div>
-  <div class="btn" data-lang="en">🇬🇧 EN</div>
-  <div class="btn" data-lang="tr">🇹🇷 TR</div>
-</div>
 
 <div class="group">
   <label id="L_model">Модель</label>
@@ -270,7 +271,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
 
   const btn = document.getElementById('startBtn');
   btn.disabled = true;
-  btn.textContent = '🔄 Проверяю ключ...';
+  btn.textContent = L('setupChecking');
 
   // API key'i test et
   try {
@@ -282,12 +283,13 @@ document.getElementById('startBtn').addEventListener('click', async () => {
     KEY = k;
     REP_KEY = document.getElementById('repKeyInput').value.trim() || '';
     showMain();
+    applyLang();
   } catch (e) {
-    btn.textContent = '❌ Неверный ключ — попробуйте другой';
+    btn.textContent = L('setupBadKey');
     btn.style.background = '#ff4444';
     btn.style.color = '#fff';
     setTimeout(() => {
-      btn.textContent = 'ПОЕХАЛИ! 🚀';
+      btn.textContent = L('setupStart');
       btn.style.background = '#5AC40A';
       btn.style.color = '#1e1e1e';
       btn.disabled = false;
@@ -308,52 +310,60 @@ function showSetup() {
 // ============================================================
 // LANG
 // ============================================================
-let currentLang = 'ru';
+let currentLang = 'tr';
 const LANGS = {
   ru: {
+    // Setup
+    setupKey:'Google AI API Ключ', setupRep:'Replicate Ключ', setupRepOpt:'(для HD, необязательно)',
+    setupStart:'ПОЕХАЛИ! 🚀', setupStar:'⭐ Нравится? Поставьте звезду!', setupStarSub:'Каждая ⭐ = +1 к удаче 🍀',
+    setupChecking:'🔄 Проверяю ключ...', setupBadKey:'❌ Неверный ключ — попробуйте другой',
+    promptPlaceholder:'баннер с девушкой в казино...',
+    // Main
     model:'Модель', prompt:'Описание', vars:'Варианты', name:'Название',
     ref:'📎 Референс', sizes:'Размеры', custom:'Свой размер', all:'Все',
-    create:'СОЗДАТЬ 🎨', edit:'✏️ DÜZENLE', hd:'🔍 HD', resize:'📐 RESIZE',
+    create:'СОЗДАТЬ 🎨', edit:'✏️ РЕДАКТ.', hd:'🔍 HD', resize:'📐 RESIZE',
     charPos:'Позиция персонажа', left:'◀️ Лево', center:'🔘 Центр', right:'▶️ Право',
     refDrop:'Перетащите или нажмите', sizeHint:'выбрано',
-    editLabel:'✏️ Редактировать', editPlaceholder:'исправь пальцы / измени цвет платья...',
-    editBtn:'✏️ ИСПРАВИТЬ', editHint:'Нажмите на изображение для редактирования',
     noCredit:'❌ Недостаточно средств на Replicate', noRepKey:'❌ Нужен Replicate ключ для HD',
-    hdDone:'✅ HD готово', editDone:'✅ Отредактировано', paintTitle:'✏️ AI Редактор — Рисуй и исправляй',
+    hdDone:'✅ HD готово', paintTitle:'✏️ AI Редактор — Рисуй и исправляй',
     brush:'🖌 Кисть', eraser:'🧹 Ластик', clear:'🗑 Очистить', thin:'Тонко', thick:'Толсто',
     paintPlaceholder:'Что изменить? (исправь пальцы, измени фон...)', paintBtn:'✏️ ИСПРАВИТЬ',
     paintDone:'✅ Редактирование завершено', imgSelect:'Выберите элемент', hdProcessing:'🔍 Real-ESRGAN HD...',
-    info:'🔥 Только сегодня!'
+    selectSize:'Выберите размер', imgReceived:'✅ Изображение получено'
   },
   en: {
+    setupKey:'Google AI API Key', setupRep:'Replicate Key', setupRepOpt:'(for HD, optional)',
+    setupStart:'LET\'S GO! 🚀', setupStar:'⭐ Like it? Give a star!', setupStarSub:'Every ⭐ = +1 luck 🍀',
+    setupChecking:'🔄 Checking key...', setupBadKey:'❌ Invalid key — try another',
+    promptPlaceholder:'banner with a woman in casino...',
     model:'Model', prompt:'Description', vars:'Variants', name:'Name',
     ref:'📎 Reference', sizes:'Sizes', custom:'Custom size', all:'All',
     create:'CREATE 🎨', edit:'✏️ EDIT', hd:'🔍 HD', resize:'📐 RESIZE',
     charPos:'Character position', left:'◀️ Left', center:'🔘 Center', right:'▶️ Right',
     refDrop:'Drag or click', sizeHint:'selected',
-    editLabel:'✏️ Edit image', editPlaceholder:'fix fingers / change dress color...',
-    editBtn:'✏️ FIX', editHint:'Click image to edit',
     noCredit:'❌ Insufficient Replicate credit', noRepKey:'❌ Replicate key needed for HD',
-    hdDone:'✅ HD done', editDone:'✅ Edited', paintTitle:'✏️ AI Editor — Paint & Fix',
+    hdDone:'✅ HD done', paintTitle:'✏️ AI Editor — Paint & Fix',
     brush:'🖌 Brush', eraser:'🧹 Eraser', clear:'🗑 Clear', thin:'Thin', thick:'Thick',
     paintPlaceholder:'What to change? (fix fingers, change background...)', paintBtn:'✏️ FIX',
     paintDone:'✅ Edit complete', imgSelect:'Select an element', hdProcessing:'🔍 Real-ESRGAN HD...',
-    info:'🔥 Limited time!'
+    selectSize:'Select a size', imgReceived:'✅ Image received'
   },
   tr: {
+    setupKey:'Google AI API Key', setupRep:'Replicate Key', setupRepOpt:'(HD için, opsiyonel)',
+    setupStart:'BAŞLA! 🚀', setupStar:'⭐ Beğendiysen yıldız ver!', setupStarSub:'Her ⭐ = +1 şans 🍀',
+    setupChecking:'🔄 Key kontrol ediliyor...', setupBadKey:'❌ Geçersiz key — başka deneyin',
+    promptPlaceholder:'casino ortamında kadın banner...',
     model:'Model', prompt:'Açıklama', vars:'Varyant', name:'İsim',
     ref:'📎 Referans', sizes:'Boyutlar', custom:'Özel boyut', all:'Tümü',
     create:'OLUŞTUR 🎨', edit:'✏️ DÜZENLE', hd:'🔍 HD', resize:'📐 RESIZE',
     charPos:'Karakter pozisyonu', left:'◀️ Sol', center:'🔘 Orta', right:'▶️ Sağ',
     refDrop:'Sürükle veya tıkla', sizeHint:'seçili',
-    editLabel:'✏️ Görseli düzenle', editPlaceholder:'parmakları düzelt / elbise rengini değiştir...',
-    editBtn:'✏️ DÜZELT', editHint:'Düzenlemek için görsele tıklayın',
     noCredit:'❌ Replicate kredisi yetersiz', noRepKey:'❌ HD için Replicate key gerekli',
-    hdDone:'✅ HD tamamlandı', editDone:'✅ Düzenlendi', paintTitle:'✏️ AI Düzenleme — Boyayıp Düzelt',
+    hdDone:'✅ HD tamamlandı', paintTitle:'✏️ AI Düzenleme — Boyayıp Düzelt',
     brush:'🖌 Boya', eraser:'🧹 Sil', clear:'🗑 Temizle', thin:'İnce', thick:'Kalın',
     paintPlaceholder:'Ne değişsin? (parmakları düzelt, arka planı değiştir...)', paintBtn:'✏️ DÜZELT',
     paintDone:'✅ Düzenleme tamamlandı', imgSelect:'Bir görsel seçin', hdProcessing:'🔍 Real-ESRGAN HD...',
-    info:'🔥 Bugüne özel fırsat!'
+    selectSize:'Boyut seçin', imgReceived:'✅ Görsel alındı'
   }
 };
 
@@ -389,12 +399,25 @@ function applyLang() {
   document.querySelectorAll('[data-pt="clear"]').forEach(e => e.textContent = L('clear'));
 }
 
-document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('[data-lang]').forEach(x => x.classList.remove('on'));
+// Setup dil seçici
+function applySetupLang() {
+  document.getElementById('S_key').textContent = L('setupKey');
+  document.getElementById('S_rep').innerHTML = L('setupRep') + ' <span style="color:#666;font-weight:400">' + L('setupRepOpt') + '</span>';
+  document.getElementById('startBtn').textContent = L('setupStart');
+  document.getElementById('S_star').textContent = L('setupStar');
+  document.getElementById('S_starSub').textContent = L('setupStarSub');
+  document.getElementById('prompt').placeholder = L('promptPlaceholder');
+}
+
+document.querySelectorAll('[data-sl]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-sl]').forEach(x => x.classList.remove('on'));
   b.classList.add('on');
-  currentLang = b.dataset.lang;
-  applyLang();
+  currentLang = b.dataset.sl;
+  applySetupLang();
 }));
+
+// İlk yükleme
+applySetupLang();
 
 // ============================================================
 // MODEL
