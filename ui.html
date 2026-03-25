@@ -987,47 +987,33 @@ window.onmessage = (e) => {
       showBar(10, '🔍 Real-ESRGAN başlatılıyor...');
 
       try {
-        // 1. Prediction oluştur
-        showBar(15, '🔍 Replicate API...');
-        const createR = await tFetch('https://api.replicate.com/v1/predictions', {
-          method:'POST', headers:{'Authorization':'Bearer '+REP_KEY,'Content-Type':'application/json'},
+        // Gemini ile HD enhance
+        showBar(15, '🔍 AI HD başladı...');
+        const hdR = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
+          method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({
-            version:'42fed1c4974146d4d2414e2be2c5277c7fcf05fcc3a73abf41610695738c1d7b',
-            input:{image:dataUri,scale:2,face_enhance:true}
+            contents: [{parts: [
+              {text: 'You are a professional photo retoucher. Enhance this image to ultra high quality.\n\n1. SHARPEN: Increase sharpness and clarity, especially on face, eyes, hair, skin texture, fabric details\n2. FIX ARTIFACTS: Remove any AI artifacts — extra fingers, distorted hands, blurry patches, weird edges\n3. SKIN: Smooth skin naturally, keep pores visible, remove blemishes\n4. LIGHTING: Enhance contrast, make highlights pop, deepen shadows naturally\n5. COLORS: Make colors more vibrant and rich, boost saturation slightly\n6. DETAILS: Add micro-details to jewelry, clothing texture, hair strands\n\nCRITICAL: Keep the EXACT same composition, pose, framing, and content. Do NOT change the aspect ratio or crop. Do NOT add or remove any elements. Only enhance quality.\n\nOutput the enhanced image only.'},
+              {inlineData: {mimeType: 'image/jpeg', data: imgB64}}
+            ]}],
+            generationConfig: {responseModalities: ['TEXT','IMAGE']}
           })
-        }, 30000);
-        const createD = await createR.json();
-
-        if (createD.detail && createD.detail.includes('credit')) throw new Error(L('noCredit'));
-        if (createD.title === 'Insufficient credit') throw new Error(L('noCredit'));
-        if (createD.error) throw new Error(createD.detail || createD.error || JSON.stringify(createD));
-        if (!createD.id) throw new Error('API Error: ' + JSON.stringify(createD).substring(0,100));
-
-        // 2. Poll sonuç
-        const getUrl = createD.urls?.get || ('https://api.replicate.com/v1/predictions/' + createD.id);
-        let outputUrl = null;
-        showBar(25, '🔍 HD işleniyor...');
-        for (let attempt = 0; attempt < 60; attempt++) {
-          await new Promise(r => setTimeout(r, 2000));
-          const pollR = await tFetch(getUrl, {
-            method:'GET', headers:{'Authorization':'Bearer '+REP_KEY}
-          }, 10000);
-          const pollD = await pollR.json();
-          if (pollD.status === 'succeeded' && pollD.output) { outputUrl = pollD.output; break; }
-          if (pollD.status === 'failed') throw new Error(pollD.error || 'Upscale failed');
-          if (pollD.status === 'canceled') throw new Error('Canceled');
-          showBar(25 + attempt, '🔍 ' + pollD.status + '... ' + Math.floor((Date.now()-vStart)/1000) + 's');
-        }
+        }, 120000);
+        const hdD = await hdR.json();
 
         clearInterval(timer);
-        if (!outputUrl) throw new Error('Timeout — sonuç alınamadı');
 
-        // 3. Görseli indir
-        showBar(80, '📥 İndiriliyor...');
-        const imgR = await tFetch(outputUrl, {method:'GET'}, 60000);
-        if (!imgR.ok) throw new Error('Download failed: ' + imgR.status);
-        const imgBuf = await imgR.arrayBuffer();
-        const newBytes = new Uint8Array(imgBuf);
+        if (hdD.error) throw new Error(hdD.error.message || JSON.stringify(hdD.error));
+
+        let newB64;
+        for (const p of (hdD.candidates?.[0]?.content?.parts || [])) {
+          if (p.inlineData) { newB64 = p.inlineData.data; break; }
+        }
+        if (!newB64) throw new Error('No image returned');
+
+        const bin = atob(newB64);
+        const newBytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) newBytes[i] = bin.charCodeAt(i);
 
         // Preview
         const blob = new Blob([newBytes], {type:'image/png'});
