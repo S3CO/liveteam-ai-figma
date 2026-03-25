@@ -197,6 +197,7 @@
 
 <div class="row" style="gap:8px">
   <button class="big-btn" id="genBtn" style="flex:3">СОЗДАТЬ 🎨</button>
+  <button class="big-btn" id="editSelBtn" style="flex:1;background:#2c2c2c;color:#e67e22;border:2px solid #e67e22;font-size:12px;padding:8px">✏️ DÜZENLE</button>
   <button class="big-btn" id="resizeBtn" style="flex:1;background:#2c2c2c;color:#5AC40A;border:2px solid #5AC40A;font-size:12px;padding:8px">📐 RESIZE</button>
 </div>
 
@@ -531,6 +532,13 @@ document.getElementById('genBtn').addEventListener('click', async () => {
 // ============================================================
 // RESIZE - AI ile eksik kısımları doldurarak boyut değiştir
 // ============================================================
+// DÜZENLE - seçili Figma görseli export et ve paint editöre aç
+document.getElementById('editSelBtn').addEventListener('click', () => {
+  if (!KEY) { showSetup(); return; }
+  setStatus('✏️ Görsel alınıyor...','');
+  parent.postMessage({ pluginMessage: { type: 'export-selected' } }, '*');
+});
+
 document.getElementById('resizeBtn').addEventListener('click', () => {
   const selSizes = [...document.querySelectorAll('[data-s].on')].map(b => { const p=b.dataset.s.split(','); return {w:+p[0],h:+p[1]}; });
   if (!selSizes.length) { setStatus('Выберите размеры / Select sizes','err'); return; }
@@ -905,6 +913,21 @@ window.onmessage = (e) => {
   if (msg.type === 'resize-done') setStatus('✅ Resized to '+msg.count+' sizes', 'ok');
   if (msg.type === 'ai-resize') handleAIResize(msg);
   if (msg.type === 'error') setStatus('❌ '+msg.message, 'err');
+  if (msg.type === 'exported-image') {
+    // Figma'dan gelen görseli paint editöre aç
+    const bytes = new Uint8Array(msg.imageBytes);
+    let b64str = '';
+    const chk = 8192;
+    for (let i = 0; i < bytes.length; i += chk) b64str += String.fromCharCode.apply(null, bytes.subarray(i, i + chk));
+    lastImageB64 = btoa(b64str);
+    // Preview'a da koy
+    const blob = new Blob([bytes], {type:'image/png'});
+    document.getElementById('preview').innerHTML = '<img src="'+URL.createObjectURL(blob)+'" onclick="toggleEdit()" title="Düzenlemek için tıkla">';
+    document.getElementById('editGroup').style.display = 'block';
+    setStatus('✅ Görsel alındı — tıkla veya düzenle','ok');
+    // Direkt paint editor aç
+    openPaint();
+  }
 };
 </script>
 

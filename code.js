@@ -105,6 +105,24 @@ figma.ui.onmessage = async (msg) => {
     return;
   }
 
+  // Seçili görseli export et ve UI'a gönder (paint editor için)
+  if (msg.type === 'export-selected') {
+    try {
+      const sel = figma.currentPage.selection;
+      if (!sel.length) {
+        figma.ui.postMessage({ type: 'error', message: 'Bir görsel seçin / Select an image' });
+        return;
+      }
+      const source = sel[0];
+      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
+      figma.ui.postMessage({ type: 'exported-image', imageBytes: Array.from(exportBytes) });
+      figma.notify('✏️ Görsel düzenleme moduna alındı');
+    } catch (e) {
+      figma.ui.postMessage({ type: 'error', message: e.message });
+    }
+    return;
+  }
+
   if (msg.type === 'place-image') {
     try {
       const { imageBytes, width, height, name } = msg;
