@@ -987,31 +987,22 @@ window.onmessage = (e) => {
       showBar(10, '🔍 Real-ESRGAN başlatılıyor...');
 
       try {
-        // Gemini ile HD enhance
-        showBar(15, '🔍 AI HD başladı...');
-        const hdR = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
+        // Real-ESRGAN via proxy
+        showBar(15, '🔍 Real-ESRGAN HD...');
+        const hdR = await tFetch('https://mobilbahisyardim.com/api/upscale', {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            contents: [{parts: [
-              {text: 'You are a professional photo retoucher. Enhance this image to ultra high quality.\n\n1. SHARPEN: Increase sharpness and clarity, especially on face, eyes, hair, skin texture, fabric details\n2. FIX ARTIFACTS: Remove any AI artifacts — extra fingers, distorted hands, blurry patches, weird edges\n3. SKIN: Smooth skin naturally, keep pores visible, remove blemishes\n4. LIGHTING: Enhance contrast, make highlights pop, deepen shadows naturally\n5. COLORS: Make colors more vibrant and rich, boost saturation slightly\n6. DETAILS: Add micro-details to jewelry, clothing texture, hair strands\n\nCRITICAL: Keep the EXACT same composition, pose, framing, and content. Do NOT change the aspect ratio or crop. Do NOT add or remove any elements. Only enhance quality.\n\nOutput the enhanced image only.'},
-              {inlineData: {mimeType: 'image/jpeg', data: imgB64}}
-            ]}],
-            generationConfig: {responseModalities: ['TEXT','IMAGE']}
-          })
+          body: JSON.stringify({ image: dataUri, scale: 2 })
         }, 120000);
         const hdD = await hdR.json();
 
         clearInterval(timer);
 
-        if (hdD.error) throw new Error(hdD.error.message || JSON.stringify(hdD.error));
+        if (hdD.error) throw new Error(hdD.error);
+        if (!hdD.image) throw new Error('No image returned');
 
-        let newB64;
-        for (const p of (hdD.candidates?.[0]?.content?.parts || [])) {
-          if (p.inlineData) { newB64 = p.inlineData.data; break; }
-        }
-        if (!newB64) throw new Error('No image returned');
-
-        const bin = atob(newB64);
+        // data:image/png;base64,... -> bytes
+        const b64 = hdD.image.split(',')[1];
+        const bin = atob(b64);
         const newBytes = new Uint8Array(bin.length);
         for (let i = 0; i < bin.length; i++) newBytes[i] = bin.charCodeAt(i);
 
