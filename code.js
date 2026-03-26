@@ -112,7 +112,7 @@ figma.ui.onmessage = async (msg) => {
     return;
   }
 
-  // Arka plan kaldırma için export
+  // Arka plan kaldırma için export (4x scale — kalite için)
   if (msg.type === 'export-for-removebg') {
     try {
       const sel = figma.currentPage.selection;
@@ -123,7 +123,7 @@ figma.ui.onmessage = async (msg) => {
       const source = sel[0];
       const w = Math.round(source.width);
       const h = Math.round(source.height);
-      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
+      const exportBytes = await source.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 4 } });
       figma.ui.postMessage({ type: 'exported-for-removebg', imageBytes: Array.from(exportBytes), origW: w, origH: h });
       figma.notify('✂️ Arka plan kaldırılıyor...');
     } catch (e) {
