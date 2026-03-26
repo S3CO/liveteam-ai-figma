@@ -2,24 +2,54 @@
 
 **🇬🇧 EN** | [🇷🇺 RU](#-русский) | [🇹🇷 TR](#-türkçe)
 
-AI-powered image generator directly inside Figma. Generate stunning images with multiple free AI models and place them on your canvas in any size.
+AI-powered image generator, editor, and upscaler directly inside Figma. Generate stunning images, edit them with paint-to-fix tools, upscale to HD, and resize to any dimension.
 
 ![Live Team AI](https://img.shields.io/badge/Figma-Plugin-5AC40A?style=for-the-badge&logo=figma&logoColor=white)
-![Free](https://img.shields.io/badge/Free-100%25-5AC40A?style=for-the-badge)
 ![Models](https://img.shields.io/badge/Models-3-blue?style=for-the-badge)
+![HD](https://img.shields.io/badge/HD-Real--ESRGAN-ff6b9d?style=for-the-badge)
 
 ---
 
 ## ✨ Features
 
-- 🍌 **Nano Banana 2** — Free, fast AI image generation
-- 🍌 **Nano Banana Pro** — Free, photorealistic results
-- 🖼 **Imagen 4 Ultra** — Free, highest quality available
-- 📐 **Multi-Size Export** — Generate multiple sizes at once
-- ➕ **Custom Sizes** — Add any W×H dimension you need
+### Image Generation
+- 🍌 **Nano Banana 2** — Fast AI image generation (Google AI)
+- 🍌 **Nano Banana Pro** — Photorealistic results (Google AI)
+- 🖼 **Imagen 4 Ultra** — Highest quality (Google AI)
 - 📎 **Reference Image** — Upload a reference, AI matches the style
+- 🔢 **1-4 Variants** — Generate multiple variations at once
+
+### Editing
+- ✏️ **Paint-to-Edit** — Select any image, paint the area to fix, AI edits only that area
+- 🖌 **Brush Tool** — Adjustable brush size
+- 🧹 **Eraser** — Fix mistakes in your mask
+- 🎯 **Precise Editing** — Only painted areas change, rest stays pixel-perfect
+
+### HD Upscale
+- 🔍 **Real-ESRGAN** — Professional AI upscaling via Replicate
+- 👤 **Face Enhance** — GFPGAN face correction included
+- 📏 **Original Size** — Output matches your original dimensions
+
+### Resize
+- 📐 **Multi-Size Export** — Resize to multiple sizes at once
+- ➕ **Custom Sizes** — Add any W×H dimension
+- 🎯 **Character Position** — Left / Center / Right alignment
+- 🖼 **High Quality** — 2x export scale, no compression
+
+### Other
+- 🌍 **3 Languages** — Russian, English, Turkish (select on startup)
 - 📊 **Progress Bar** — Real-time generation tracking
-- 🌍 **3 Languages** — Russian, English, Turkish
+
+---
+
+## 🔑 API Keys Required
+
+| Key | For | Cost | Get it at |
+|-----|-----|------|-----------|
+| **Google AI** | Image generation + editing | Free ($300 credit) | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| **Replicate** | HD upscale (Real-ESRGAN) | ~$0.002/image | [replicate.com/account/api-tokens](https://replicate.com/account/api-tokens) |
+
+> Google AI key is required. Replicate key is optional (only needed for HD).
 
 ---
 
@@ -41,13 +71,16 @@ git clone https://github.com/S3CO/liveteam-ai-figma.git
 4. Navigate to the cloned folder and select **`manifest.json`**
 5. Done! Plugin appears under **Plugins → Development → Live Team AI**
 
-### Step 3: Get your API Key (see detailed guide below)
+### Step 3: Enter API Keys
+
+1. Select your language (RU / EN / TR)
+2. Enter your **Google AI API Key** (`AIzaSy...`)
+3. Enter your **Replicate Key** (`r8_...`) — optional, for HD only
+4. Click **Start!**
 
 ---
 
-## 🔑 API Key Setup — Detailed Guide
-
-The plugin uses **Google AI Studio** API. It's free but you need to set up billing to remove the zero-limit restriction on new accounts.
+## 🔑 Google AI Key Setup — Detailed Guide
 
 ### Step 1: Create a Google Cloud Project
 
@@ -62,11 +95,10 @@ The plugin uses **Google AI Studio** API. It's free but you need to set up billi
 3. **IMPORTANT:** Go back to your project → **☰ Menu** → **Billing**
 4. Click **"Link a billing account"** → select your billing account
 5. If you see **"Activate billing"** anywhere — click it!
-6. Verify: Go to [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → your key should NOT show "Activate billing" in the Billing Tier column. If it does, billing is not linked.
 
-> ⚠️ **Common mistake:** Having a billing account is NOT enough. You must **link it to your project**. If you see "Activate billing" next to your API key, it's not linked yet.
+> ⚠️ **Common mistake:** Having a billing account is NOT enough. You must **link it to your project**.
 
-> 💡 **Don't worry about charges!** Google gives $300 free credit (90 days). Image generation costs only $0.001-0.005 per image.
+> 💡 Google gives $300 free credit (90 days). Image generation costs only $0.001-0.005 per image.
 
 ### Step 3: Enable the API
 
@@ -78,18 +110,21 @@ The plugin uses **Google AI Studio** API. It's free but you need to set up billi
 
 1. Go to [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 2. Click **"Create API Key"**
-3. **Important:** Select the project where you enabled billing (e.g., `LiveTeam`)
+3. Select the project where you enabled billing
 4. Copy the key (starts with `AIzaSy...`)
-5. Paste it into the plugin when prompted
+5. Paste it into the plugin
 
-### Troubleshooting
+---
 
-| Error | Solution |
-|-------|----------|
-| `Quota exceeded, limit: 0` | Billing not linked. Follow Step 2 above. |
-| `API key not valid` | Wrong key. Create a new one from the billing-enabled project. |
-| `Model not found` | Try a different model in the plugin (Banana 2 or Imagen 4 Ultra). |
-| `Safety filter` | Rephrase your prompt, avoid explicit content. |
+## 🔍 HD Upscale Setup (Optional)
+
+HD uses **Real-ESRGAN** via Replicate API for professional quality upscaling.
+
+1. Go to [replicate.com](https://replicate.com) → sign up
+2. Go to [replicate.com/account/api-tokens](https://replicate.com/account/api-tokens)
+3. Create a token (starts with `r8_...`)
+4. Add credit: [replicate.com/account/billing](https://replicate.com/account/billing) — ~$0.002 per upscale
+5. Paste the token into the plugin on startup
 
 ---
 
@@ -105,169 +140,50 @@ The plugin uses **Google AI Studio** API. It's free but you need to set up billi
 
 ## 📐 Preset Sizes
 
-`1024×1024` · `1024×1536` · `1536×1024` · `512×512` · `1080×1080` · `1080×1920` · `900×600` · `1200×628` + custom
+`1024×1024` · `1024×1536` · `1536×1024` · `512×512` · `1080×1080` · `1080×1920` · `900×600` · `1200×628` · `568×286` · `492×400` · `1152×360` + custom
 
 ---
 
-# 🇷🇺 Русский
+## 🛠 How to Use
 
-## 🎨 Live Team AI — Плагин для Figma
+### Generate Images
+1. Write a prompt describing your image
+2. Select model (Banana 2 / Banana Pro / Imagen Ultra)
+3. Choose variant count (1-4)
+4. Select sizes
+5. Click **Create**
 
-AI генератор изображений прямо внутри Figma. Бесплатные AI модели, любые размеры, референс изображения.
+### Edit Images (Paint-to-Fix)
+1. Select any image on your Figma canvas
+2. Click **Edit** button
+3. Paint over the area you want to fix (red brush)
+4. Write what to change (e.g., "fix the fingers", "change dress color")
+5. Click **Fix** — AI edits only the painted area
 
-### 🚀 Установка (3 шага)
+### HD Upscale
+1. Select any image on your Figma canvas
+2. Click **HD** button
+3. Real-ESRGAN enhances the image with face correction
+4. Result placed at original dimensions
 
-#### Шаг 1: Скачайте плагин
-
-```bash
-git clone https://github.com/S3CO/liveteam-ai-figma.git
-```
-
-> Нет Git? [Скачайте ZIP](https://github.com/S3CO/liveteam-ai-figma/archive/refs/heads/main.zip) и распакуйте.
-
-#### Шаг 2: Импортируйте в Figma
-
-1. Откройте **Figma Desktop** (не браузерную версию!)
-2. Откройте любой файл
-3. **Plugins** → **Development** → **Import plugin from manifest...**
-4. Выберите **`manifest.json`** из скачанной папки
-5. Готово! Плагин: **Plugins → Development → Live Team AI**
-
-#### Шаг 3: Получите API ключ (подробная инструкция ниже)
-
----
-
-### 🔑 Настройка API Ключа — Подробная Инструкция
-
-#### Шаг 1: Создайте проект Google Cloud
-
-1. Откройте [console.cloud.google.com](https://console.cloud.google.com)
-2. Нажмите **"Выбрать проект"** → **"Новый проект"**
-3. Назовите как угодно (например, `LiveTeam`) → **"Создать"**
-
-#### Шаг 2: Подключите биллинг И привяжите к проекту
-
-1. В Google Cloud Console: **☰ Меню** → **Billing (Оплата)**
-2. Создайте платёжный аккаунт, если его нет → введите данные карты
-3. **ВАЖНО:** Вернитесь в проект → **☰ Меню** → **Billing**
-4. Нажмите **"Link a billing account"** → выберите ваш аккаунт
-5. Если видите **"Activate billing"** — нажмите!
-6. Проверка: откройте [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → рядом с ключом НЕ должно быть "Activate billing". Если есть — биллинг не привязан.
-
-> ⚠️ **Частая ошибка:** Иметь платёжный аккаунт НЕДОСТАТОЧНО. Нужно **привязать его к проекту**. Если видите "Activate billing" — он не привязан!
-
-> 💡 **Не переживайте!** Google даёт $300 бесплатного кредита (90 дней). Одно изображение стоит $0.001-0.005.
-
-#### Шаг 3: Включите API
-
-1. В Google Cloud Console: **☰ Меню** → **APIs & Services** → **Library**
-2. Найдите **"Generative Language API"**
-3. Нажмите → **"Enable" (Включить)**
-
-#### Шаг 4: Создайте API ключ
-
-1. Откройте [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-2. Нажмите **"Create API Key"**
-3. **Важно:** Выберите проект с подключённым биллингом (например, `LiveTeam`)
-4. Скопируйте ключ (начинается с `AIzaSy...`)
-5. Вставьте в плагин
-
-#### Решение проблем
-
-| Ошибка | Решение |
-|--------|---------|
-| `Quota exceeded, limit: 0` | Биллинг не подключён. Выполните Шаг 2. |
-| `API key not valid` | Неверный ключ. Создайте новый из проекта с биллингом. |
-| `Model not found` | Попробуйте другую модель (Banana 2 или Imagen 4 Ultra). |
-
-### 🤖 Модели
-
-| Модель | Скорость | Качество | Цена |
-|--------|----------|----------|------|
-| 🍌 Nano Banana 2 | ⚡ Быстро | ★★★★☆ | **Бесплатно** |
-| 🍌 Nano Banana Pro | 🔄 Средне | ★★★★★ | **Бесплатно** |
-| 🖼 Imagen 4 Ultra | 🔄 Средне | ★★★★★ | **Бесплатно** |
+### Resize
+1. Select any image on your Figma canvas
+2. Choose target sizes
+3. Set character position (Left / Center / Right)
+4. Click **Resize** — high quality copies created
 
 ---
 
-# 🇹🇷 Türkçe
+## Troubleshooting
 
-## 🎨 Live Team AI — Figma Eklentisi
-
-Figma içinde AI görsel üretici. Ücretsiz AI modelleri, istediğin boyut, referans görsel desteği.
-
-### 🚀 Kurulum (3 adım)
-
-#### Adım 1: Plugin'i indir
-
-```bash
-git clone https://github.com/S3CO/liveteam-ai-figma.git
-```
-
-> Git yok mu? [ZIP indir](https://github.com/S3CO/liveteam-ai-figma/archive/refs/heads/main.zip) ve çıkar.
-
-#### Adım 2: Figma'ya import et
-
-1. **Figma Desktop** uygulamasını aç (tarayıcıda çalışmaz!)
-2. Herhangi bir dosya aç
-3. **Plugins** → **Development** → **Import plugin from manifest...**
-4. İndirilen klasördeki **`manifest.json`** dosyasını seç
-5. Tamam! **Plugins → Development → Live Team AI** altında görünecek
-
-#### Adım 3: API Key al (detaylı rehber aşağıda)
-
----
-
-### 🔑 API Key Kurulumu — Detaylı Rehber
-
-#### Adım 1: Google Cloud Projesi Oluştur
-
-1. [console.cloud.google.com](https://console.cloud.google.com) aç
-2. **"Proje seç"** → **"Yeni Proje"** tıkla
-3. İsim ver (örn: `LiveTeam`) → **"Oluştur"**
-
-#### Adım 2: Billing Bağla VE Projeye Bağla
-
-1. Google Cloud Console'da: **☰ Menü** → **Billing**
-2. Billing hesabı yoksa oluştur → kredi kartı gir
-3. **ÖNEMLİ:** Projeye geri dön → **☰ Menü** → **Billing**
-4. **"Link a billing account"** tıkla → billing hesabını seç
-5. **"Activate billing"** görüyorsan — tıkla!
-6. Kontrol: [aistudio.google.com/apikey](https://aistudio.google.com/apikey) aç → key yanında "Activate billing" OLMAMALI. Varsa bağlanmamış demektir.
-
-> ⚠️ **Sık yapılan hata:** Billing hesabı açmak YETMİYOR. Projeye **bağlamak** lazım. "Activate billing" görüyorsan bağlı değil!
-
-> 💡 **Endişelenme!** Google $300 bedava kredi veriyor (90 gün). Görsel başına $0.001-0.005.
-
-#### Adım 3: API'yi Aktif Et
-
-1. Google Cloud Console'da: **☰ Menü** → **APIs & Services** → **Library**
-2. **"Generative Language API"** ara
-3. Tıkla → **"Enable" (Etkinleştir)**
-
-#### Adım 4: API Key Oluştur
-
-1. [aistudio.google.com/apikey](https://aistudio.google.com/apikey) aç
-2. **"Create API Key"** bas
-3. **Önemli:** Billing bağladığın projeyi seç (örn: `LiveTeam`)
-4. Key'i kopyala (`AIzaSy...` ile başlar)
-5. Plugin'e yapıştır
-
-#### Sorun Çözümü
-
-| Hata | Çözüm |
-|------|-------|
-| `Quota exceeded, limit: 0` | Billing bağlanmamış. Adım 2'yi yap. |
-| `API key not valid` | Yanlış key. Billing'li projeden yeni key oluştur. |
-| `Model not found` | Başka model dene (Banana 2 veya Imagen 4 Ultra). |
-
-### 🤖 Modeller
-
-| Model | Hız | Kalite | Fiyat |
-|-------|-----|--------|-------|
-| 🍌 Nano Banana 2 | ⚡ Hızlı | ★★★★☆ | **Ücretsiz** |
-| 🍌 Nano Banana Pro | 🔄 Orta | ★★★★★ | **Ücretsiz** |
-| 🖼 Imagen 4 Ultra | 🔄 Orta | ★★★★★ | **Ücretsiz** |
+| Error | Solution |
+|-------|----------|
+| `Quota exceeded, limit: 0` | Billing not linked. See setup guide above. |
+| `API key not valid` | Wrong key. Create a new one from the billing-enabled project. |
+| `Model not found` | Try a different model (Banana 2 or Imagen 4 Ultra). |
+| `Safety filter` | Rephrase your prompt, avoid explicit content. |
+| `Failed to fetch` (HD) | Check Replicate key is correct and has credit. |
+| Keys not accepted | Make sure no extra spaces when pasting keys. |
 
 ---
 
@@ -275,11 +191,82 @@ git clone https://github.com/S3CO/liveteam-ai-figma.git
 
 ```
 liveteam-ai-figma/
-├── manifest.json    # Plugin config
-├── code.js          # Figma canvas logic
-├── ui.html          # Plugin UI
+├── manifest.json    # Plugin config + allowed domains
+├── code.js          # Figma canvas logic (export, resize, place)
+├── ui.html          # Plugin UI + AI integration
 └── README.md        # Documentation (EN/RU/TR)
 ```
+
+---
+
+# 🇷🇺 Русский
+
+## 🎨 Live Team AI — Плагин для Figma
+
+AI генератор, редактор и апскейлер изображений прямо внутри Figma.
+
+### ✨ Возможности
+
+- 🎨 **3 AI модели** — генерация изображений (Banana 2, Banana Pro, Imagen Ultra)
+- ✏️ **Рисуй и исправляй** — выбери изображение, закрась область, AI исправит только её
+- 🔍 **HD апскейл** — Real-ESRGAN через Replicate (нужен ключ Replicate)
+- 📐 **Мульти-ресайз** — изменение размера с сохранением качества
+- 📎 **Референс** — загрузи референс, AI повторит стиль
+- 🌍 **3 языка** — русский, английский, турецкий
+
+### 🔑 Нужные ключи
+
+| Ключ | Для чего | Стоимость | Где взять |
+|------|----------|-----------|-----------|
+| **Google AI** | Генерация + редактирование | Бесплатно ($300 кредит) | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| **Replicate** | HD апскейл | ~$0.002/изображение | [replicate.com/account/api-tokens](https://replicate.com/account/api-tokens) |
+
+### 🚀 Установка
+
+1. `git clone https://github.com/S3CO/liveteam-ai-figma.git`
+2. Figma → Plugins → Development → Import plugin from manifest → выберите `manifest.json`
+3. Выберите язык, введите ключи, нажмите **Поехали!**
+
+---
+
+# 🇹🇷 Türkçe
+
+## 🎨 Live Team AI — Figma Eklentisi
+
+Figma içinde AI görsel üretici, düzenleyici ve HD yükseltici.
+
+### ✨ Özellikler
+
+- 🎨 **3 AI model** — görsel üretimi (Banana 2, Banana Pro, Imagen Ultra)
+- ✏️ **Boyayıp Düzelt** — görseli seç, düzeltmek istediğin alanı boya, AI sadece orayı değiştirir
+- 🔍 **HD Yükseltme** — Real-ESRGAN (Replicate key gerekli)
+- 📐 **Çoklu Boyut** — kalite kaybı olmadan boyut değiştirme
+- 📎 **Referans Görsel** — referans yükle, AI stili kopyalar
+- 🌍 **3 Dil** — Rusça, İngilizce, Türkçe
+
+### 🔑 Gerekli Key'ler
+
+| Key | Ne İçin | Ücret | Nereden |
+|-----|---------|-------|---------|
+| **Google AI** | Üretim + düzenleme | Ücretsiz ($300 kredi) | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| **Replicate** | HD yükseltme | ~$0.002/görsel | [replicate.com/account/api-tokens](https://replicate.com/account/api-tokens) |
+
+### 🚀 Kurulum
+
+1. `git clone https://github.com/S3CO/liveteam-ai-figma.git`
+2. Figma → Plugins → Development → Import plugin from manifest → `manifest.json` seç
+3. Dil seç, key'leri gir, **Başla!** bas
+
+### Sorun Çözümü
+
+| Hata | Çözüm |
+|------|-------|
+| `Quota exceeded, limit: 0` | Billing bağlanmamış. Google Cloud'da projeye billing bağla. |
+| `API key not valid` | Yanlış key. Billing'li projeden yeni key oluştur. |
+| `Failed to fetch` (HD) | Replicate key'i kontrol et, kredi olduğundan emin ol. |
+| Key kabul edilmiyor | Key yapıştırırken boşluk olmadığından emin ol. |
+
+---
 
 ## 📄 License
 
