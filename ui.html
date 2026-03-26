@@ -905,25 +905,37 @@ window.doPaintEdit = async function() {
   const mergedB64 = mergeCanvas.toDataURL('image/png').split(',')[1];
 
   try {
-    const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        contents: [{parts: [
-          {text: 'STRICT IMAGE EDITING RULES:\n\nUser instruction: ' + editPrompt + '\n\nI marked the edit area with RED/PINK paint on this image. The RED areas show WHERE to edit.\n\nCRITICAL RULES:\n1. ONLY modify pixels inside the red/pink marked area\n2. Every pixel OUTSIDE red marks must remain IDENTICAL\n3. Face, eyes, nose, mouth, hair OUTSIDE marked area must stay EXACTLY the same\n4. Do NOT move, rotate, resize, or reposition ANY element\n5. Remove all red/pink overlay marks from output\n6. Match lighting, color temperature of surrounding pixels\n7. Keep exact same resolution and aspect ratio\n\nOutput: the edited image only.'},
-          {inlineData: {mimeType: 'image/png', data: mergedB64}}
-        ]}],
-        generationConfig: {responseModalities: ['TEXT','IMAGE']}
-      })
-    }, 120000);
-    const d = await r.json();
+    let newB64 = null;
+    const editBody = JSON.stringify({
+      contents: [{parts: [
+        {text: 'STRICT IMAGE EDITING RULES:\n\nUser instruction: ' + editPrompt + '\n\nI marked the edit area with RED/PINK paint on this image. The RED areas show WHERE to edit.\n\nCRITICAL RULES:\n1. ONLY modify pixels inside the red/pink marked area\n2. Every pixel OUTSIDE red marks must remain IDENTICAL\n3. Face, eyes, nose, mouth, hair OUTSIDE marked area must stay EXACTLY the same\n4. Do NOT move, rotate, resize, or reposition ANY element\n5. Remove all red/pink overlay marks from output\n6. Match lighting, color temperature of surrounding pixels\n7. Keep exact same resolution and aspect ratio\n\nOutput: the edited image only.'},
+        {inlineData: {mimeType: 'image/png', data: mergedB64}}
+      ]}],
+      generationConfig: {responseModalities: ['TEXT','IMAGE']}
+    });
 
-    if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+    // 3 deneme yap
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      setStatus('✏️ Deneme ' + attempt + '/3...','');
+      const r = await tFetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key='+KEY, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: editBody
+      }, 120000);
+      const d = await r.json();
 
-    let newB64;
-    for (const p of (d.candidates?.[0]?.content?.parts || [])) {
-      if (p.inlineData) { newB64 = p.inlineData.data; break; }
+      if (d.error) {
+        if (attempt === 3) throw new Error(d.error.message || JSON.stringify(d.error));
+        await new Promise(r => setTimeout(r, 2000));
+        continue;
+      }
+
+      for (const p of (d.candidates?.[0]?.content?.parts || [])) {
+        if (p.inlineData) { newB64 = p.inlineData.data; break; }
+      }
+      if (newB64) break;
+      if (attempt < 3) await new Promise(r => setTimeout(r, 2000));
     }
-    if (!newB64) throw new Error('No image returned');
+    if (!newB64) throw new Error('3 denemede de görsel üretilemedi — tekrar deneyin');
 
     // Update stored image
     lastImageB64 = newB64;
